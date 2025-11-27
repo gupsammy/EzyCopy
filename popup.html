@@ -2,49 +2,44 @@
 <html>
   <head>
     <title>EzyCopy</title>
-    <style>
-      body {
-        width: 300px;
-        padding: 20px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Oxygen, Ubuntu, Cantarell, sans-serif;
-      }
-      .container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-      }
-      button {
-        background-color: #4caf50;
-        color: white;
-        padding: 12px 24px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: background-color 0.3s;
-      }
-      button:hover {
-        background-color: #45a049;
-      }
-      button:disabled {
-        background-color: #cccccc;
-        cursor: not-allowed;
-      }
-      .status {
-        color: #666;
-        font-size: 14px;
-        text-align: center;
-        margin-top: 10px;
-      }
-    </style>
+    <link rel="stylesheet" href="popup.css">
   </head>
   <body>
-    <div class="container">
-      <h2>EzyCopy</h2>
-      <button id="saveContent">Save Content</button>
+    <div class="popup-container">
+      <!-- Header -->
+      <header class="header">
+        <div class="brand">
+          <svg class="brand-logo" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="4" y="2" width="16" height="20" rx="2" fill="#2E7D32"/>
+            <rect x="7" y="6" width="10" height="2" rx="1" fill="white" opacity="0.9"/>
+            <rect x="7" y="10" width="10" height="2" rx="1" fill="white" opacity="0.7"/>
+            <rect x="7" y="14" width="7" height="2" rx="1" fill="white" opacity="0.5"/>
+          </svg>
+          <span class="brand-name">EzyCopy</span>
+        </div>
+      </header>
+
+      <!-- Main Action -->
+      <main class="main">
+        <button id="saveContent" class="btn-primary">Save as Markdown</button>
+      </main>
+
+      <!-- Status -->
       <div id="status" class="status"></div>
+
+      <!-- Settings -->
+      <section class="settings">
+        <div class="setting-row">
+          <div class="setting-info">
+            <label for="downloadImages" class="setting-label">Download images locally</label>
+            <span class="setting-description">Save images to disk with the markdown file</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="downloadImages">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </section>
     </div>
     <script src="popup.js"></script>
   </body>

@@ -1,11 +1,47 @@
-document.addEventListener("DOMContentLoaded", function () {
+// Storage configuration
+const STORAGE_KEY = 'ezycopy_settings';
+const DEFAULT_SETTINGS = {
+  downloadImagesLocally: false
+};
+
+// Load settings from chrome.storage.local
+async function loadSettings() {
+  const result = await chrome.storage.local.get(STORAGE_KEY);
+  return result[STORAGE_KEY] || DEFAULT_SETTINGS;
+}
+
+// Save settings to chrome.storage.local
+async function saveSettings(settings) {
+  await chrome.storage.local.set({ [STORAGE_KEY]: settings });
+}
+
+// Update status display with appropriate styling
+function setStatus(statusDiv, message, type) {
+  statusDiv.textContent = message;
+  statusDiv.className = 'status ' + type;
+}
+
+document.addEventListener("DOMContentLoaded", async function () {
   const saveButton = document.getElementById("saveContent");
   const statusDiv = document.getElementById("status");
+  const downloadImagesToggle = document.getElementById("downloadImages");
 
+  // Initialize toggle state from storage
+  const settings = await loadSettings();
+  downloadImagesToggle.checked = settings.downloadImagesLocally;
+
+  // Handle toggle changes
+  downloadImagesToggle.addEventListener("change", async (e) => {
+    const currentSettings = await loadSettings();
+    currentSettings.downloadImagesLocally = e.target.checked;
+    await saveSettings(currentSettings);
+  });
+
+  // Handle save button click
   saveButton.addEventListener("click", async () => {
     try {
       saveButton.disabled = true;
-      statusDiv.textContent = "Extracting content...";
+      setStatus(statusDiv, "Extracting content...", "extracting");
 
       // Get the current active tab
       const [tab] = await chrome.tabs.query({
@@ -52,17 +88,17 @@ document.addEventListener("DOMContentLoaded", function () {
         await writable.write(content);
         await writable.close();
 
-        statusDiv.textContent = "Saved successfully!";
+        setStatus(statusDiv, "Saved successfully!", "success");
       } catch (error) {
         if (error.name === "AbortError") {
-          statusDiv.textContent = "Save cancelled";
+          setStatus(statusDiv, "Save cancelled", "cancelled");
         } else {
           throw error;
         }
       }
     } catch (error) {
       console.error("Error:", error);
-      statusDiv.textContent = "Error: " + error.message;
+      setStatus(statusDiv, "Error: " + error.message, "error");
     } finally {
       saveButton.disabled = false;
     }
