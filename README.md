@@ -1,78 +1,66 @@
 # EzyCopy Chrome Extension
 
-EzyCopy is a powerful Chrome extension that allows you to easily extract and save webpage content as markdown files. It's perfect for content creators, researchers, and anyone who needs to save web content in a clean, formatted way.
+EzyCopy extracts webpage content and saves it as clean Markdown files. It uses Mozilla's Readability.js (the same engine behind Firefox Reader View) for intelligent content extraction and Turndown.js for high-quality Markdown conversion.
 
 ## Features
 
-- Extract webpage content and convert it to markdown format
-- Save content directly as .md files
-- Clean and intuitive user interface
-- Preserves basic formatting and structure
-- Works on most web pages
+- Extracts main article content, filtering out ads, navigation, and clutter
+- Converts to GitHub Flavored Markdown (tables, strikethrough, task lists)
+- Preserves images as `![alt](url)` references
+- Two ways to trigger: popup button or right-click context menu
+- Suggests filenames based on page title and date
 
 ## Installation
 
-1. **Clone the Repository**
-
+1. Clone the repository:
    ```bash
-   git clone https://github.com/YourUsername/EzyCopy.git
+   git clone https://github.com/gupsammy/EzyCopy.git
    ```
 
-2. **Load the Extension in Chrome**
-   - Open Chrome and navigate to `chrome://extensions/`
-   - Enable "Developer mode" by toggling the switch in the top right corner
+2. Load in Chrome:
+   - Navigate to `chrome://extensions/`
+   - Enable "Developer mode" (top right)
    - Click "Load unpacked"
-   - Select the directory where you cloned the EzyCopy repository
+   - Select the EzyCopy directory
 
 ## Usage
 
-1. Click on the EzyCopy extension icon in your Chrome toolbar
-2. The popup interface will appear
-3. Click the "Extract Content" button to convert the current webpage to markdown
-4. Review the converted content in the preview area
-5. Click "Download" to save the content as a markdown file
+**Via Popup:**
+1. Click the EzyCopy icon in your toolbar
+2. Click "Save Content"
+3. Choose where to save the `.md` file
 
-## Requirements
-
-- Google Chrome browser (version 88 or higher)
-- Developer mode enabled in Chrome extensions
-
-## Permissions
-
-The extension requires the following permissions:
-
-- `activeTab`: To access the current webpage
-- `scripting`: To run content scripts
-- `downloads`: To save markdown files
-- Access to all URLs for content extraction
-
-## Development
-
-To modify or enhance the extension:
-
-1. Make your changes to the source files
-2. Update the manifest version if necessary
-3. Reload the extension in Chrome to test changes
+**Via Right-Click:**
+1. Right-click anywhere on a page
+2. Select "EzyCopy - Save as Markdown"
+3. Choose where to save the `.md` file
 
 ## Project Structure
 
 ```
 EzyCopy/
-├── manifest.json      # Extension configuration
-├── popup.html        # Extension popup interface
-├── popup.js          # Main extension logic
-├── icons/            # Extension icons
-└── README.md         # Documentation
+├── manifest.json         # Extension configuration (Manifest V3)
+├── popup.html/js         # Popup UI and logic
+├── background.js         # Service worker (context menu)
+├── content-script.js     # Right-click menu handler
+├── lib/
+│   ├── readability.js    # Mozilla Readability
+│   ├── turndown.js       # HTML to Markdown converter
+│   ├── turndown-plugin-gfm.js  # GFM support
+│   └── ezycopy.js        # Shared extraction logic
+└── icons/                # Extension icons
 ```
 
-## Contributing
+## Permissions
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+- `activeTab` - Access current page content
+- `scripting` - Inject extraction scripts
+- `contextMenus` - Right-click menu integration
+
+## Requirements
+
+- Chrome 88+ (Manifest V3 support)
 
 ## License
 
-This project is open source and available under the MIT License.
-
-## Support
-
-If you encounter any issues or have questions, please open an issue in the GitHub repository.
+MIT License

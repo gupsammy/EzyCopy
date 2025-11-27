@@ -1,16 +1,11 @@
 // This script is injected after the lib scripts (readability, turndown, ezycopy)
-// extractContent() is already available from lib/ezycopy.js
+// extractContent() and generateFilename() are available from lib/ezycopy.js
 
 (async function saveContent() {
   try {
-    // Extract content using shared function from ezycopy.js
+    // Extract content and generate filename using shared functions from ezycopy.js
     const { content } = extractContent();
-
-    // Create suggested filename from page title
-    const pageTitle = content.split("\n")[0].replace(/^#\s*/, "").trim();
-    const safeTitle = pageTitle.substring(0, 50).replace(/[^a-zA-Z0-9]/g, "-");
-    const timestamp = new Date().toISOString().slice(0, 10);
-    const suggestedName = `${safeTitle}-${timestamp}.md`;
+    const suggestedName = generateFilename(content);
 
     // Show file picker dialog
     const handle = await window.showSaveFilePicker({

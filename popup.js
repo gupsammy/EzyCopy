@@ -24,19 +24,16 @@ document.addEventListener("DOMContentLoaded", function () {
         ],
       });
 
-      // Now call extractContent which is defined in ezycopy.js
+      // Now call extractContent and generateFilename from ezycopy.js
       const [{ result }] = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        func: () => extractContent(),
+        func: () => {
+          const { content } = extractContent();
+          return { content, suggestedName: generateFilename(content) };
+        },
       });
 
-      const { content } = result;
-
-      // Create suggested filename from page title
-      const pageTitle = content.split("\n")[0].replace(/^#\s*/, "").trim();
-      const safeTitle = pageTitle.substring(0, 50).replace(/[^a-zA-Z0-9]/g, "-");
-      const timestamp = new Date().toISOString().slice(0, 10);
-      const suggestedName = `${safeTitle}-${timestamp}.md`;
+      const { content, suggestedName } = result;
 
       try {
         // Show file picker dialog
