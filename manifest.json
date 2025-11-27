@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "EzyCopy",
-  "version": "1.2",
+  "version": "2.0",
   "description": "Extract and save webpage content as markdown files",
-  "permissions": ["activeTab", "scripting", "downloads", "contextMenus"],
+  "permissions": ["activeTab", "scripting", "contextMenus"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -17,7 +17,13 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["content-script.js"],
+      "resources": [
+        "lib/readability.js",
+        "lib/turndown.js",
+        "lib/turndown-plugin-gfm.js",
+        "lib/ezycopy.js",
+        "content-script.js"
+      ],
       "matches": ["<all_urls>"]
     }
   ],
