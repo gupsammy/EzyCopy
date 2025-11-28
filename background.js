@@ -1,8 +1,9 @@
 // Storage configuration
 const STORAGE_KEY = 'ezycopy_settings';
 const DEFAULT_SETTINGS = {
-  downloadImagesLocally: false,
-  ezycopyBasePath: 'EzyCopy'
+  copyToClipboard: true,
+  downloadMarkdown: false,
+  downloadImagesLocally: false
 };
 
 // Base folder for downloads (relative to Downloads folder)

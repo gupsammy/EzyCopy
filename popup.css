@@ -28,60 +28,54 @@ body {
   flex-direction: column;
 }
 
-/* Header */
-.header {
-  padding: 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.brand-logo {
-  flex-shrink: 0;
-}
-
-.brand-name {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
 /* Main Action */
 .main {
-  padding: 24px 16px;
+  padding: 20px 16px 16px;
   background: var(--surface);
 }
 
-.btn-primary {
+/* Hero Button */
+.btn-hero {
   width: 100%;
-  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 24px;
   background: var(--primary);
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
 }
 
-.btn-primary:hover {
+.btn-hero:hover {
   background: var(--primary-hover);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.4);
 }
 
-.btn-primary:active {
+.btn-hero:active {
   transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(46, 125, 50, 0.3);
 }
 
-.btn-primary:disabled {
+.btn-hero:disabled {
   background: var(--toggle-off);
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
+}
+
+.hero-logo {
+  flex-shrink: 0;
+}
+
+.hero-text {
+  letter-spacing: 0.5px;
 }
 
 /* Settings Section */
@@ -114,6 +108,24 @@ body {
 .setting-description {
   font-size: 11px;
   color: var(--text-secondary);
+}
+
+/* Nested setting row (indented child toggle) */
+.setting-nested {
+  margin-left: 12px;
+  padding-left: 12px;
+  border-left: 2px solid var(--border);
+  overflow: hidden;
+  max-height: 60px;
+  opacity: 1;
+  transition: max-height 0.25s ease, opacity 0.2s ease, margin-top 0.25s ease;
+}
+
+.setting-nested.hidden {
+  max-height: 0;
+  opacity: 0;
+  margin-top: -8px;
+  pointer-events: none;
 }
 
 /* Toggle Switch */
@@ -167,33 +179,4 @@ body {
 .toggle input:focus + .toggle-slider {
   outline: 2px solid var(--primary-hover);
   outline-offset: 2px;
-}
-
-/* Status */
-.status {
-  min-height: 20px;
-  padding: 0 16px 16px;
-  background: var(--surface);
-  font-size: 12px;
-  text-align: center;
-}
-
-.status:empty {
-  display: none;
-}
-
-.status.extracting {
-  color: var(--text-secondary);
-}
-
-.status.success {
-  color: var(--primary);
-}
-
-.status.error {
-  color: var(--error);
-}
-
-.status.cancelled {
-  color: var(--text-secondary);
 }

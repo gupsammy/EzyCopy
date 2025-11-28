@@ -1,8 +1,21 @@
 // Storage configuration
 const STORAGE_KEY = 'ezycopy_settings';
 const DEFAULT_SETTINGS = {
+  copyToClipboard: true,
+  downloadMarkdown: false,
   downloadImagesLocally: false
 };
+
+// Ensure at least one output method is active
+function enforceAtLeastOneActive(settings, changedToggle) {
+  if (changedToggle === 'copyToClipboard' && !settings.copyToClipboard && !settings.downloadMarkdown) {
+    settings.downloadMarkdown = true;
+  }
+  if (changedToggle === 'downloadMarkdown' && !settings.downloadMarkdown && !settings.copyToClipboard) {
+    settings.copyToClipboard = true;
+  }
+  return settings;
+}
 
 // Load settings from chrome.storage.local
 async function loadSettings() {
@@ -15,62 +28,67 @@ async function saveSettings(settings) {
   await chrome.storage.local.set({ [STORAGE_KEY]: settings });
 }
 
-// Update status display with appropriate styling
-function setStatus(statusDiv, message, type) {
-  statusDiv.textContent = message;
-  statusDiv.className = 'status ' + type;
-}
+document.addEventListener("DOMContentLoaded", async function () {
+  // DOM elements
+  const ezycopyBtn = document.getElementById("ezycopyBtn");
+  const copyToClipboardToggle = document.getElementById("copyToClipboard");
+  const downloadMarkdownToggle = document.getElementById("downloadMarkdown");
+  const downloadImagesToggle = document.getElementById("downloadImages");
+  const imageToggleRow = document.getElementById("imageToggleRow");
 
-/**
- * Rewrite image URLs in markdown with local file paths
- */
-function rewriteImagePaths(markdown, urlToPathMap) {
-  let result = markdown;
-
-  for (const [originalUrl, localPath] of Object.entries(urlToPathMap)) {
-    // Escape special regex characters in the URL
-    const escapedUrl = originalUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-    // Match markdown image syntax: ![alt](url) or ![alt](url "title")
-    const regex = new RegExp(`(!\\[[^\\]]*\\]\\()${escapedUrl}((?:\\s+"[^"]*")?\\))`, 'g');
-    result = result.replace(regex, `$1${localPath}$2`);
+  // Update image toggle visibility based on download markdown state
+  function updateImageToggleVisibility(downloadEnabled) {
+    if (downloadEnabled) {
+      imageToggleRow.classList.remove("hidden");
+    } else {
+      imageToggleRow.classList.add("hidden");
+    }
   }
 
-  return result;
-}
-
-document.addEventListener("DOMContentLoaded", async function () {
-  const saveButton = document.getElementById("saveContent");
-  const statusDiv = document.getElementById("status");
-  const downloadImagesToggle = document.getElementById("downloadImages");
-
-  // Initialize toggle state from storage
+  // Initialize toggle states from storage
   const settings = await loadSettings();
+  copyToClipboardToggle.checked = settings.copyToClipboard;
+  downloadMarkdownToggle.checked = settings.downloadMarkdown;
   downloadImagesToggle.checked = settings.downloadImagesLocally;
+  updateImageToggleVisibility(settings.downloadMarkdown);
 
-  // Handle toggle changes
+  // Handle copy to clipboard toggle
+  copyToClipboardToggle.addEventListener("change", async (e) => {
+    let currentSettings = await loadSettings();
+    currentSettings.copyToClipboard = e.target.checked;
+    currentSettings = enforceAtLeastOneActive(currentSettings, 'copyToClipboard');
+    await saveSettings(currentSettings);
+    // Sync UI if enforcement changed the other toggle
+    downloadMarkdownToggle.checked = currentSettings.downloadMarkdown;
+    updateImageToggleVisibility(currentSettings.downloadMarkdown);
+  });
+
+  // Handle download markdown toggle
+  downloadMarkdownToggle.addEventListener("change", async (e) => {
+    let currentSettings = await loadSettings();
+    currentSettings.downloadMarkdown = e.target.checked;
+    currentSettings = enforceAtLeastOneActive(currentSettings, 'downloadMarkdown');
+    await saveSettings(currentSettings);
+    // Sync UI if enforcement changed the other toggle
+    copyToClipboardToggle.checked = currentSettings.copyToClipboard;
+    updateImageToggleVisibility(currentSettings.downloadMarkdown);
+  });
+
+  // Handle download images toggle
   downloadImagesToggle.addEventListener("change", async (e) => {
     const currentSettings = await loadSettings();
     currentSettings.downloadImagesLocally = e.target.checked;
     await saveSettings(currentSettings);
   });
 
-  // Handle save button click
-  saveButton.addEventListener("click", async () => {
+  // Handle EzyCopy button click - inject content script and close popup
+  ezycopyBtn.addEventListener("click", async () => {
     try {
-      saveButton.disabled = true;
-      const currentSettings = await loadSettings();
-      const downloadImages = currentSettings.downloadImagesLocally;
+      ezycopyBtn.disabled = true;
 
-      setStatus(statusDiv, "Extracting content...", "extracting");
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-      // Get the current active tab
-      const [tab] = await chrome.tabs.query({
-        active: true,
-        currentWindow: true,
-      });
-
-      // Inject libraries first
+      // Inject libs + content-script (same as context menu)
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         files: [
@@ -78,89 +96,17 @@ document.addEventListener("DOMContentLoaded", async function () {
           "lib/turndown.js",
           "lib/turndown-plugin-gfm.js",
           "lib/ezycopy.js",
+          "content-script.js",
         ],
       });
 
-      if (downloadImages) {
-        // Extract content WITH images
-        const [{ result }] = await chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          func: () => {
-            const data = extractContentWithImages();
-            return {
-              content: data.content,
-              images: data.images,
-              subfolder: data.subfolder,
-              suggestedName: generateFilename(data.content)
-            };
-          },
-        });
+      // Toast on page handles all feedback - close popup
+      window.close();
 
-        let { content, images, subfolder, suggestedName } = result;
-
-        // Download images if there are any
-        if (images && images.length > 0) {
-          setStatus(statusDiv, `Downloading ${images.length} images...`, "extracting");
-
-          const imageResult = await chrome.runtime.sendMessage({
-            action: 'downloadImages',
-            images: images,
-            subfolder: subfolder
-          });
-
-          if (imageResult.downloadedCount > 0) {
-            // Rewrite image paths in markdown
-            content = rewriteImagePaths(content, imageResult.urlToPathMap);
-            setStatus(statusDiv, `Downloaded ${imageResult.downloadedCount}/${imageResult.totalImages} images. Saving markdown...`, "extracting");
-          }
-        }
-
-        // Save markdown to EzyCopy folder via background
-        const mdResult = await chrome.runtime.sendMessage({
-          action: 'downloadMarkdown',
-          content: content,
-          filename: suggestedName
-        });
-
-        if (mdResult.success) {
-          const imageInfo = images && images.length > 0
-            ? ` with ${images.length} images`
-            : '';
-          setStatus(statusDiv, `Saved to Downloads/EzyCopy${imageInfo}!`, "success");
-        } else {
-          throw new Error(mdResult.error || 'Failed to save markdown');
-        }
-
-      } else {
-        // Extract content without images, save directly to Downloads/EzyCopy
-        const [{ result }] = await chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          func: () => {
-            const { content } = extractContent();
-            return { content, suggestedName: generateFilename(content) };
-          },
-        });
-
-        const { content, suggestedName } = result;
-
-        // Save markdown to EzyCopy folder via background
-        const mdResult = await chrome.runtime.sendMessage({
-          action: 'downloadMarkdown',
-          content: content,
-          filename: suggestedName
-        });
-
-        if (mdResult.success) {
-          setStatus(statusDiv, "Saved to Downloads/EzyCopy!", "success");
-        } else {
-          throw new Error(mdResult.error || 'Failed to save markdown');
-        }
-      }
     } catch (error) {
-      console.error("Error:", error);
-      setStatus(statusDiv, "Error: " + error.message, "error");
-    } finally {
-      saveButton.disabled = false;
+      console.error("EzyCopy error:", error);
+      // Re-enable button on error so user can retry
+      ezycopyBtn.disabled = false;
     }
   });
 });

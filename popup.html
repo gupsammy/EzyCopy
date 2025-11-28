@@ -6,33 +6,50 @@
   </head>
   <body>
     <div class="popup-container">
-      <!-- Header -->
-      <header class="header">
-        <div class="brand">
-          <svg class="brand-logo" width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <rect x="4" y="2" width="16" height="20" rx="2" fill="#2E7D32"/>
+      <!-- Hero Button -->
+      <main class="main">
+        <button id="ezycopyBtn" class="btn-hero">
+          <svg class="hero-logo" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="4" y="2" width="16" height="20" rx="2" fill="currentColor"/>
             <rect x="7" y="6" width="10" height="2" rx="1" fill="white" opacity="0.9"/>
             <rect x="7" y="10" width="10" height="2" rx="1" fill="white" opacity="0.7"/>
             <rect x="7" y="14" width="7" height="2" rx="1" fill="white" opacity="0.5"/>
           </svg>
-          <span class="brand-name">EzyCopy</span>
-        </div>
-      </header>
-
-      <!-- Main Action -->
-      <main class="main">
-        <button id="saveContent" class="btn-primary">Save as Markdown</button>
+          <span class="hero-text">EzyCopy</span>
+        </button>
       </main>
-
-      <!-- Status -->
-      <div id="status" class="status"></div>
 
       <!-- Settings -->
       <section class="settings">
+        <!-- Toggle 1: Copy to clipboard -->
         <div class="setting-row">
           <div class="setting-info">
+            <label for="copyToClipboard" class="setting-label">Copy to clipboard</label>
+            <span class="setting-description">Copy markdown to clipboard</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="copyToClipboard">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Toggle 2: Download markdown -->
+        <div class="setting-row">
+          <div class="setting-info">
+            <label for="downloadMarkdown" class="setting-label">Download .md</label>
+            <span class="setting-description">Save markdown file to disk</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="downloadMarkdown">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Toggle 3: Download images (nested under download) -->
+        <div class="setting-row setting-nested" id="imageToggleRow">
+          <div class="setting-info">
             <label for="downloadImages" class="setting-label">Download images locally</label>
-            <span class="setting-description">Save images to disk with the markdown file</span>
+            <span class="setting-description">Save images with the markdown file</span>
           </div>
           <label class="toggle">
             <input type="checkbox" id="downloadImages">
