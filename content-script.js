@@ -1,30 +1,94 @@
-// This script is injected after the lib scripts (readability, turndown, ezycopy)
-// extractContent() and generateFilename() are available from lib/ezycopy.js
+// This script is injected after the lib scripts (readability, turndown, ezycopy, platform)
+// extractContent(), extractContentWithImages(), and generateFilename() are available from lib/ezycopy.js
+
+/**
+ * Rewrite image URLs in markdown with local file paths
+ */
+function rewriteImagePaths(markdown, urlToPathMap) {
+  let result = markdown;
+
+  for (const [originalUrl, localPath] of Object.entries(urlToPathMap)) {
+    // Escape special regex characters in the URL
+    const escapedUrl = originalUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Match markdown image syntax: ![alt](url) or ![alt](url "title")
+    const regex = new RegExp(`(!\\[[^\\]]*\\]\\()${escapedUrl}((?:\\s+"[^"]*")?\\))`, 'g');
+    result = result.replace(regex, `$1${localPath}$2`);
+  }
+
+  return result;
+}
 
 (async function saveContent() {
   try {
-    // Extract content and generate filename using shared functions from ezycopy.js
-    const { content } = extractContent();
-    const suggestedName = generateFilename(content);
+    // Get settings from background script
+    const settings = await chrome.runtime.sendMessage({ action: 'getSettings' });
+    const downloadImages = settings?.downloadImagesLocally || false;
 
-    // Show file picker dialog
-    const handle = await window.showSaveFilePicker({
-      suggestedName: suggestedName,
-      types: [
-        {
-          description: "Markdown File",
-          accept: { "text/markdown": [".md"] },
-        },
-      ],
-    });
+    if (downloadImages) {
+      // Extract content WITH images
+      const data = extractContentWithImages();
+      let content = data.content;
+      const images = data.images;
+      const subfolder = data.subfolder;
+      const suggestedName = generateFilename(content);
 
-    // Write the content
-    const writable = await handle.createWritable();
-    await writable.write(content);
-    await writable.close();
+      // Download images if there are any
+      if (images && images.length > 0) {
+        showFeedback(`Downloading ${images.length} images...`, "#2196F3");
 
-    // Show success feedback
-    showFeedback("Content saved successfully!", "#4caf50");
+        const imageResult = await chrome.runtime.sendMessage({
+          action: 'downloadImages',
+          images: images,
+          subfolder: subfolder
+        });
+
+        if (imageResult.downloadedCount > 0) {
+          // Rewrite image paths in markdown
+          content = rewriteImagePaths(content, imageResult.urlToPathMap);
+        }
+      }
+
+      // Save markdown to EzyCopy folder via background
+      const mdResult = await chrome.runtime.sendMessage({
+        action: 'downloadMarkdown',
+        content: content,
+        filename: suggestedName
+      });
+
+      if (mdResult.success) {
+        const imageInfo = images && images.length > 0
+          ? ` with ${images.length} images`
+          : '';
+        showFeedback(`Saved to Downloads/EzyCopy${imageInfo}!`, "#4caf50");
+      } else {
+        throw new Error(mdResult.error || 'Failed to save markdown');
+      }
+
+    } else {
+      // Original behavior: file picker, no image download
+      const { content } = extractContent();
+      const suggestedName = generateFilename(content);
+
+      // Show file picker dialog (defaults to Downloads folder)
+      const handle = await window.showSaveFilePicker({
+        suggestedName: suggestedName,
+        startIn: 'downloads',
+        types: [
+          {
+            description: "Markdown File",
+            accept: { "text/markdown": [".md"] },
+          },
+        ],
+      });
+
+      // Write the content
+      const writable = await handle.createWritable();
+      await writable.write(content);
+      await writable.close();
+
+      showFeedback("Content saved successfully!", "#4caf50");
+    }
   } catch (error) {
     if (error.name === "AbortError") {
       // User cancelled - no feedback needed

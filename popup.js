@@ -21,6 +21,24 @@ function setStatus(statusDiv, message, type) {
   statusDiv.className = 'status ' + type;
 }
 
+/**
+ * Rewrite image URLs in markdown with local file paths
+ */
+function rewriteImagePaths(markdown, urlToPathMap) {
+  let result = markdown;
+
+  for (const [originalUrl, localPath] of Object.entries(urlToPathMap)) {
+    // Escape special regex characters in the URL
+    const escapedUrl = originalUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Match markdown image syntax: ![alt](url) or ![alt](url "title")
+    const regex = new RegExp(`(!\\[[^\\]]*\\]\\()${escapedUrl}((?:\\s+"[^"]*")?\\))`, 'g');
+    result = result.replace(regex, `$1${localPath}$2`);
+  }
+
+  return result;
+}
+
 document.addEventListener("DOMContentLoaded", async function () {
   const saveButton = document.getElementById("saveContent");
   const statusDiv = document.getElementById("status");
@@ -41,6 +59,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   saveButton.addEventListener("click", async () => {
     try {
       saveButton.disabled = true;
+      const currentSettings = await loadSettings();
+      const downloadImages = currentSettings.downloadImagesLocally;
+
       setStatus(statusDiv, "Extracting content...", "extracting");
 
       // Get the current active tab
@@ -49,7 +70,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         currentWindow: true,
       });
 
-      // Inject libraries first, then extract content
+      // Inject libraries first
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         files: [
@@ -60,40 +81,93 @@ document.addEventListener("DOMContentLoaded", async function () {
         ],
       });
 
-      // Now call extractContent and generateFilename from ezycopy.js
-      const [{ result }] = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: () => {
-          const { content } = extractContent();
-          return { content, suggestedName: generateFilename(content) };
-        },
-      });
-
-      const { content, suggestedName } = result;
-
-      try {
-        // Show file picker dialog
-        const handle = await window.showSaveFilePicker({
-          suggestedName: suggestedName,
-          types: [
-            {
-              description: "Markdown File",
-              accept: { "text/markdown": [".md"] },
-            },
-          ],
+      if (downloadImages) {
+        // Extract content WITH images
+        const [{ result }] = await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: () => {
+            const data = extractContentWithImages();
+            return {
+              content: data.content,
+              images: data.images,
+              subfolder: data.subfolder,
+              suggestedName: generateFilename(data.content)
+            };
+          },
         });
 
-        // Write the content
-        const writable = await handle.createWritable();
-        await writable.write(content);
-        await writable.close();
+        let { content, images, subfolder, suggestedName } = result;
 
-        setStatus(statusDiv, "Saved successfully!", "success");
-      } catch (error) {
-        if (error.name === "AbortError") {
-          setStatus(statusDiv, "Save cancelled", "cancelled");
+        // Download images if there are any
+        if (images && images.length > 0) {
+          setStatus(statusDiv, `Downloading ${images.length} images...`, "extracting");
+
+          const imageResult = await chrome.runtime.sendMessage({
+            action: 'downloadImages',
+            images: images,
+            subfolder: subfolder
+          });
+
+          if (imageResult.downloadedCount > 0) {
+            // Rewrite image paths in markdown
+            content = rewriteImagePaths(content, imageResult.urlToPathMap);
+            setStatus(statusDiv, `Downloaded ${imageResult.downloadedCount}/${imageResult.totalImages} images. Saving markdown...`, "extracting");
+          }
+        }
+
+        // Save markdown to EzyCopy folder via background
+        const mdResult = await chrome.runtime.sendMessage({
+          action: 'downloadMarkdown',
+          content: content,
+          filename: suggestedName
+        });
+
+        if (mdResult.success) {
+          const imageInfo = images && images.length > 0
+            ? ` with ${images.length} images`
+            : '';
+          setStatus(statusDiv, `Saved to Downloads/EzyCopy${imageInfo}!`, "success");
         } else {
-          throw error;
+          throw new Error(mdResult.error || 'Failed to save markdown');
+        }
+
+      } else {
+        // Original behavior: file picker, no image download
+        const [{ result }] = await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: () => {
+            const { content } = extractContent();
+            return { content, suggestedName: generateFilename(content) };
+          },
+        });
+
+        const { content, suggestedName } = result;
+
+        try {
+          // Show file picker dialog (defaults to Downloads folder)
+          const handle = await window.showSaveFilePicker({
+            suggestedName: suggestedName,
+            startIn: 'downloads',
+            types: [
+              {
+                description: "Markdown File",
+                accept: { "text/markdown": [".md"] },
+              },
+            ],
+          });
+
+          // Write the content
+          const writable = await handle.createWritable();
+          await writable.write(content);
+          await writable.close();
+
+          setStatus(statusDiv, "Saved successfully!", "success");
+        } catch (error) {
+          if (error.name === "AbortError") {
+            setStatus(statusDiv, "Save cancelled", "cancelled");
+          } else {
+            throw error;
+          }
         }
       }
     } catch (error) {
