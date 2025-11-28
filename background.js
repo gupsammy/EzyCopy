@@ -2,8 +2,12 @@
 const STORAGE_KEY = 'ezycopy_settings';
 const DEFAULT_SETTINGS = {
   copyToClipboard: true,
-  downloadMarkdown: false,
-  downloadImagesLocally: false
+  downloadMarkdown: true,
+  includeImages: true,
+  experimental: {
+    selectiveCopy: false,
+    downloadImagesLocally: false
+  }
 };
 
 // Base folder for downloads (relative to Downloads folder)
@@ -37,10 +41,20 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
-// Load settings from storage
+// Load settings from storage with migration support
 async function loadSettings() {
   const result = await chrome.storage.local.get(STORAGE_KEY);
-  return result[STORAGE_KEY] || DEFAULT_SETTINGS;
+  const stored = result[STORAGE_KEY] || {};
+
+  return {
+    copyToClipboard: stored.copyToClipboard ?? DEFAULT_SETTINGS.copyToClipboard,
+    downloadMarkdown: stored.downloadMarkdown ?? DEFAULT_SETTINGS.downloadMarkdown,
+    includeImages: stored.includeImages ?? DEFAULT_SETTINGS.includeImages,
+    experimental: {
+      selectiveCopy: stored.experimental?.selectiveCopy ?? false,
+      downloadImagesLocally: stored.experimental?.downloadImagesLocally ?? false
+    }
+  };
 }
 
 /**
@@ -200,17 +214,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const downloadPromises = images.map((img, index) => {
       const filename = sanitizeImageFilename(img.src, index);
       const savePath = `${EZYCOPY_FOLDER}/${IMAGES_SUBFOLDER}/${subfolder}/${filename}`;
-      return downloadImage(img.src, savePath);
+      // Relative path from markdown file (in EzyCopy/) to image
+      const relativePath = `${IMAGES_SUBFOLDER}/${subfolder}/${filename}`;
+      return downloadImage(img.src, savePath).then(result => ({
+        ...result,
+        relativePath
+      }));
     });
 
     Promise.all(downloadPromises).then((results) => {
-      // Build URL to path mapping for successful downloads
+      // Build URL to path mapping for successful downloads (using relative paths)
       const urlToPathMap = {};
       let successCount = 0;
 
       results.forEach((result) => {
-        if (result.success && result.localPath) {
-          urlToPathMap[result.originalUrl] = result.localPath;
+        if (result.success) {
+          // Use relative path for markdown compatibility with any viewer
+          urlToPathMap[result.originalUrl] = result.relativePath;
           successCount++;
         }
       });

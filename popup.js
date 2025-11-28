@@ -2,8 +2,12 @@
 const STORAGE_KEY = 'ezycopy_settings';
 const DEFAULT_SETTINGS = {
   copyToClipboard: true,
-  downloadMarkdown: false,
-  downloadImagesLocally: false
+  downloadMarkdown: true,
+  includeImages: true,
+  experimental: {
+    selectiveCopy: false,
+    downloadImagesLocally: false
+  }
 };
 
 // Ensure at least one output method is active
@@ -17,10 +21,20 @@ function enforceAtLeastOneActive(settings, changedToggle) {
   return settings;
 }
 
-// Load settings from chrome.storage.local
+// Load settings from chrome.storage.local with migration support
 async function loadSettings() {
   const result = await chrome.storage.local.get(STORAGE_KEY);
-  return result[STORAGE_KEY] || DEFAULT_SETTINGS;
+  const stored = result[STORAGE_KEY] || {};
+
+  return {
+    copyToClipboard: stored.copyToClipboard ?? DEFAULT_SETTINGS.copyToClipboard,
+    downloadMarkdown: stored.downloadMarkdown ?? DEFAULT_SETTINGS.downloadMarkdown,
+    includeImages: stored.includeImages ?? DEFAULT_SETTINGS.includeImages,
+    experimental: {
+      selectiveCopy: stored.experimental?.selectiveCopy ?? false,
+      downloadImagesLocally: stored.experimental?.downloadImagesLocally ?? false
+    }
+  };
 }
 
 // Save settings to chrome.storage.local
@@ -29,19 +43,24 @@ async function saveSettings(settings) {
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
-  // DOM elements
+  // DOM elements - main settings
   const ezycopyBtn = document.getElementById("ezycopyBtn");
   const copyToClipboardToggle = document.getElementById("copyToClipboard");
   const downloadMarkdownToggle = document.getElementById("downloadMarkdown");
-  const downloadImagesToggle = document.getElementById("downloadImages");
-  const imageToggleRow = document.getElementById("imageToggleRow");
+  const includeImagesToggle = document.getElementById("includeImages");
 
-  // Update image toggle visibility based on download markdown state
-  function updateImageToggleVisibility(downloadEnabled) {
-    if (downloadEnabled) {
-      imageToggleRow.classList.remove("hidden");
+  // DOM elements - experimental settings
+  const selectiveCopyToggle = document.getElementById("selectiveCopy");
+  const downloadImagesLocallyToggle = document.getElementById("downloadImagesLocally");
+  const downloadImagesRow = document.getElementById("downloadImagesRow");
+
+  // Update download images toggle visibility
+  // Only visible when BOTH download markdown AND include images are enabled
+  function updateDownloadImagesVisibility(downloadMarkdown, includeImages) {
+    if (downloadMarkdown && includeImages) {
+      downloadImagesRow.classList.remove("hidden");
     } else {
-      imageToggleRow.classList.add("hidden");
+      downloadImagesRow.classList.add("hidden");
     }
   }
 
@@ -49,8 +68,10 @@ document.addEventListener("DOMContentLoaded", async function () {
   const settings = await loadSettings();
   copyToClipboardToggle.checked = settings.copyToClipboard;
   downloadMarkdownToggle.checked = settings.downloadMarkdown;
-  downloadImagesToggle.checked = settings.downloadImagesLocally;
-  updateImageToggleVisibility(settings.downloadMarkdown);
+  includeImagesToggle.checked = settings.includeImages;
+  selectiveCopyToggle.checked = settings.experimental.selectiveCopy;
+  downloadImagesLocallyToggle.checked = settings.experimental.downloadImagesLocally;
+  updateDownloadImagesVisibility(settings.downloadMarkdown, settings.includeImages);
 
   // Handle copy to clipboard toggle
   copyToClipboardToggle.addEventListener("change", async (e) => {
@@ -60,7 +81,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     await saveSettings(currentSettings);
     // Sync UI if enforcement changed the other toggle
     downloadMarkdownToggle.checked = currentSettings.downloadMarkdown;
-    updateImageToggleVisibility(currentSettings.downloadMarkdown);
+    updateDownloadImagesVisibility(currentSettings.downloadMarkdown, currentSettings.includeImages);
   });
 
   // Handle download markdown toggle
@@ -71,13 +92,28 @@ document.addEventListener("DOMContentLoaded", async function () {
     await saveSettings(currentSettings);
     // Sync UI if enforcement changed the other toggle
     copyToClipboardToggle.checked = currentSettings.copyToClipboard;
-    updateImageToggleVisibility(currentSettings.downloadMarkdown);
+    updateDownloadImagesVisibility(currentSettings.downloadMarkdown, currentSettings.includeImages);
   });
 
-  // Handle download images toggle
-  downloadImagesToggle.addEventListener("change", async (e) => {
+  // Handle selective copy toggle
+  selectiveCopyToggle.addEventListener("change", async (e) => {
     const currentSettings = await loadSettings();
-    currentSettings.downloadImagesLocally = e.target.checked;
+    currentSettings.experimental.selectiveCopy = e.target.checked;
+    await saveSettings(currentSettings);
+  });
+
+  // Handle include images toggle
+  includeImagesToggle.addEventListener("change", async (e) => {
+    const currentSettings = await loadSettings();
+    currentSettings.includeImages = e.target.checked;
+    await saveSettings(currentSettings);
+    updateDownloadImagesVisibility(currentSettings.downloadMarkdown, e.target.checked);
+  });
+
+  // Handle download images locally toggle
+  downloadImagesLocallyToggle.addEventListener("change", async (e) => {
+    const currentSettings = await loadSettings();
+    currentSettings.experimental.downloadImagesLocally = e.target.checked;
     await saveSettings(currentSettings);
   });
 

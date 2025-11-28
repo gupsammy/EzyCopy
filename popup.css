@@ -92,6 +92,10 @@ body {
   gap: 12px;
 }
 
+.setting-row + .setting-row {
+  margin-top: 12px;
+}
+
 .setting-info {
   display: flex;
   flex-direction: column;
@@ -110,22 +114,9 @@ body {
   color: var(--text-secondary);
 }
 
-/* Nested setting row (indented child toggle) */
-.setting-nested {
-  margin-left: 12px;
-  padding-left: 12px;
-  border-left: 2px solid var(--border);
-  overflow: hidden;
-  max-height: 60px;
-  opacity: 1;
-  transition: max-height 0.25s ease, opacity 0.2s ease, margin-top 0.25s ease;
-}
-
-.setting-nested.hidden {
-  max-height: 0;
-  opacity: 0;
-  margin-top: -8px;
-  pointer-events: none;
+/* Conditional setting row (can be hidden) */
+.setting-row.hidden {
+  display: none;
 }
 
 /* Toggle Switch */
@@ -179,4 +170,22 @@ body {
 .toggle input:focus + .toggle-slider {
   outline: 2px solid var(--primary-hover);
   outline-offset: 2px;
+}
+
+/* Experimental Section */
+.experimental-section {
+  border-top: 1px dashed #ffa726;
+  margin-top: 0;
+  padding-top: 12px;
+}
+
+.experimental-header {
+  margin-bottom: 12px;
+}
+
+.experimental-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #ffa726;
+  letter-spacing: 0.5px;
 }

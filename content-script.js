@@ -1,5 +1,6 @@
 // This script is injected after the lib scripts (readability, turndown, ezycopy, platform)
-// extractContent(), extractContentWithImages(), generateFilename(), and rewriteImagePaths() are available from lib/
+// extractContent(), formatContent(), generateFilename(), generateSubfolder(),
+// extractImagesFromHtml(), and rewriteImagePaths() are available from lib/
 
 /**
  * Build success message based on actions performed
@@ -21,69 +22,94 @@ function buildSuccessMessage(copied, saved, imageCount, isSelection) {
 }
 
 /**
+ * Copy content to clipboard
+ */
+async function copyContentToClipboard(content) {
+  await navigator.clipboard.writeText(content);
+  return true;
+}
+
+/**
+ * Download markdown file via background script
+ */
+async function downloadMarkdownFile(content, filename) {
+  const result = await chrome.runtime.sendMessage({
+    action: 'downloadMarkdown',
+    content: content,
+    filename: filename
+  });
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to save markdown');
+  }
+  return result;
+}
+
+/**
  * Main execution
  */
 (async function ezycopy() {
   try {
     // Get settings from background script
     const settings = await chrome.runtime.sendMessage({ action: 'getSettings' });
-    const { copyToClipboard, downloadMarkdown, downloadImagesLocally } = settings;
+    const { copyToClipboard: shouldCopy, downloadMarkdown: shouldDownload, includeImages } = settings;
+    const { selectiveCopy, downloadImagesLocally } = settings.experimental || {};
 
-    // Determine if we need images (only if downloading with images enabled)
-    const needImages = downloadMarkdown && downloadImagesLocally;
+    // Extract content (respects selectiveCopy setting)
+    const extraction = extractContent({ selectiveCopy });
 
-    // Extract content (selection-aware extraction handled by ezycopy.js)
-    const extractionResult = needImages
-      ? extractContentWithImages()
-      : extractContent();
-
-    let { content, images, subfolder, isSelection } = extractionResult;
-    const filename = generateFilename(content);
-
-    let copiedToClipboard = false;
-    let savedToFile = false;
+    let clipboardContent = null;
+    let downloadContent = null;
     let imageCount = 0;
 
-    // 1. Copy to clipboard if enabled
-    if (copyToClipboard) {
-      await navigator.clipboard.writeText(content);
+    // Format for clipboard (lean - no metadata except title)
+    if (shouldCopy) {
+      clipboardContent = formatContent(extraction, 'clipboard', settings);
+    }
+
+    // Format for download (full metadata)
+    if (shouldDownload) {
+      downloadContent = formatContent(extraction, 'download', settings);
+
+      // Handle image downloads if all conditions met
+      if (includeImages && downloadImagesLocally && extraction.html) {
+        const images = extractImagesFromHtml(extraction.html);
+        if (images.length > 0) {
+          showFeedback(`Downloading ${images.length} images...`, "#2196F3");
+
+          const subfolder = generateSubfolder(extraction.title);
+          const imageResult = await chrome.runtime.sendMessage({
+            action: 'downloadImages',
+            images: images,
+            subfolder: subfolder
+          });
+
+          if (imageResult.downloadedCount > 0) {
+            downloadContent = rewriteImagePaths(downloadContent, imageResult.urlToPathMap);
+            imageCount = imageResult.downloadedCount;
+          }
+        }
+      }
+    }
+
+    const filename = generateFilename(extraction.title);
+
+    // Execute outputs
+    let copiedToClipboard = false;
+    let savedToFile = false;
+
+    if (clipboardContent) {
+      await copyContentToClipboard(clipboardContent);
       copiedToClipboard = true;
     }
 
-    // 2. Download markdown if enabled
-    if (downloadMarkdown) {
-      // Handle image downloads if enabled
-      if (needImages && images && images.length > 0) {
-        showFeedback(`Downloading ${images.length} images...`, "#2196F3");
-
-        const imageResult = await chrome.runtime.sendMessage({
-          action: 'downloadImages',
-          images: images,
-          subfolder: subfolder
-        });
-
-        if (imageResult.downloadedCount > 0) {
-          content = rewriteImagePaths(content, imageResult.urlToPathMap);
-          imageCount = imageResult.downloadedCount;
-        }
-      }
-
-      // Save markdown file
-      const mdResult = await chrome.runtime.sendMessage({
-        action: 'downloadMarkdown',
-        content: content,
-        filename: filename
-      });
-
-      if (mdResult.success) {
-        savedToFile = true;
-      } else {
-        throw new Error(mdResult.error || 'Failed to save markdown');
-      }
+    if (downloadContent) {
+      await downloadMarkdownFile(downloadContent, filename);
+      savedToFile = true;
     }
 
-    // 3. Show success feedback
-    const successMsg = buildSuccessMessage(copiedToClipboard, savedToFile, imageCount, isSelection);
+    // Show success feedback
+    const successMsg = buildSuccessMessage(copiedToClipboard, savedToFile, imageCount, extraction.isSelection);
     showFeedback(successMsg, "#4caf50");
 
   } catch (error) {

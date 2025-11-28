@@ -45,14 +45,45 @@
           </label>
         </div>
 
-        <!-- Toggle 3: Download images (nested under download) -->
-        <div class="setting-row setting-nested" id="imageToggleRow">
+        <!-- Toggle 3: Include Images -->
+        <div class="setting-row">
           <div class="setting-info">
-            <label for="downloadImages" class="setting-label">Download images locally</label>
-            <span class="setting-description">Save images with the markdown file</span>
+            <label for="includeImages" class="setting-label">Include images</label>
+            <span class="setting-description">Keep image links in output</span>
           </div>
           <label class="toggle">
-            <input type="checkbox" id="downloadImages">
+            <input type="checkbox" id="includeImages">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Experimental Features -->
+      <section class="settings experimental-section">
+        <div class="experimental-header">
+          <span class="experimental-badge">EXPERIMENTAL</span>
+        </div>
+
+        <!-- Toggle: Selective Copy -->
+        <div class="setting-row">
+          <div class="setting-info">
+            <label for="selectiveCopy" class="setting-label">Selective copy</label>
+            <span class="setting-description">Extract only selected text</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="selectiveCopy">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Toggle: Download Images Locally -->
+        <div class="setting-row" id="downloadImagesRow">
+          <div class="setting-info">
+            <label for="downloadImagesLocally" class="setting-label">Download images locally</label>
+            <span class="setting-description">Save images with markdown file</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="downloadImagesLocally">
             <span class="toggle-slider"></span>
           </label>
         </div>
