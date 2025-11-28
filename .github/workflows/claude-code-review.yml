@@ -27,6 +27,7 @@ jobs:
 
           # Enable progress tracking
           track_progress: true
+          allowed_bots: "*"
 
           # Your custom review instructions
           prompt: |
