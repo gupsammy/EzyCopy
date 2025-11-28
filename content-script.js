@@ -1,4 +1,4 @@
-// This script is injected after the lib scripts (readability, turndown, ezycopy, platform)
+// This script is injected after the lib scripts (readability, turndown, ezycopy)
 // extractContent(), extractContentWithImages(), and generateFilename() are available from lib/ezycopy.js
 
 /**
@@ -8,10 +8,7 @@ function rewriteImagePaths(markdown, urlToPathMap) {
   let result = markdown;
 
   for (const [originalUrl, localPath] of Object.entries(urlToPathMap)) {
-    // Escape special regex characters in the URL
     const escapedUrl = originalUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-    // Match markdown image syntax: ![alt](url) or ![alt](url "title")
     const regex = new RegExp(`(!\\[[^\\]]*\\]\\()${escapedUrl}((?:\\s+"[^"]*")?\\))`, 'g');
     result = result.replace(regex, `$1${localPath}$2`);
   }
@@ -19,22 +16,59 @@ function rewriteImagePaths(markdown, urlToPathMap) {
   return result;
 }
 
-(async function saveContent() {
+/**
+ * Build success message based on actions performed
+ */
+function buildSuccessMessage(copied, saved, imageCount, isSelection) {
+  const prefix = isSelection ? "Selection " : "";
+
+  if (copied && saved) {
+    return imageCount > 0
+      ? `${prefix}Copied & saved with ${imageCount} images!`
+      : `${prefix}Copied & saved!`;
+  } else if (copied) {
+    return `${prefix}Copied to clipboard!`;
+  } else {
+    return imageCount > 0
+      ? `${prefix}Saved with ${imageCount} images!`
+      : `${prefix}Saved to Downloads/EzyCopy!`;
+  }
+}
+
+/**
+ * Main execution
+ */
+(async function ezycopy() {
   try {
     // Get settings from background script
     const settings = await chrome.runtime.sendMessage({ action: 'getSettings' });
-    const downloadImages = settings?.downloadImagesLocally || false;
+    const { copyToClipboard, downloadMarkdown, downloadImagesLocally } = settings;
 
-    if (downloadImages) {
-      // Extract content WITH images
-      const data = extractContentWithImages();
-      let content = data.content;
-      const images = data.images;
-      const subfolder = data.subfolder;
-      const suggestedName = generateFilename(content);
+    // Determine if we need images (only if downloading with images enabled)
+    const needImages = downloadMarkdown && downloadImagesLocally;
 
-      // Download images if there are any
-      if (images && images.length > 0) {
+    // Extract content (selection-aware extraction handled by ezycopy.js)
+    const extractionResult = needImages
+      ? extractContentWithImages()
+      : extractContent();
+
+    let { content, images, subfolder, isSelection } = extractionResult;
+    const filename = generateFilename(content);
+
+    let copiedToClipboard = false;
+    let savedToFile = false;
+    let imageCount = 0;
+
+    // 1. Copy to clipboard if enabled
+    if (copyToClipboard) {
+      await navigator.clipboard.writeText(content);
+      copiedToClipboard = true;
+    }
+
+    // 2. Download markdown if enabled
+    if (downloadMarkdown) {
+      // Handle image downloads if enabled
+      if (needImages && images && images.length > 0) {
         showFeedback(`Downloading ${images.length} images...`, "#2196F3");
 
         const imageResult = await chrome.runtime.sendMessage({
@@ -44,55 +78,41 @@ function rewriteImagePaths(markdown, urlToPathMap) {
         });
 
         if (imageResult.downloadedCount > 0) {
-          // Rewrite image paths in markdown
           content = rewriteImagePaths(content, imageResult.urlToPathMap);
+          imageCount = imageResult.downloadedCount;
         }
       }
 
-      // Save markdown to EzyCopy folder via background
+      // Save markdown file
       const mdResult = await chrome.runtime.sendMessage({
         action: 'downloadMarkdown',
         content: content,
-        filename: suggestedName
+        filename: filename
       });
 
       if (mdResult.success) {
-        const imageInfo = images && images.length > 0
-          ? ` with ${images.length} images`
-          : '';
-        showFeedback(`Saved to Downloads/EzyCopy${imageInfo}!`, "#4caf50");
-      } else {
-        throw new Error(mdResult.error || 'Failed to save markdown');
-      }
-
-    } else {
-      // Extract content without images, save directly to Downloads/EzyCopy
-      const { content } = extractContent();
-      const suggestedName = generateFilename(content);
-
-      // Save markdown to EzyCopy folder via background
-      const mdResult = await chrome.runtime.sendMessage({
-        action: 'downloadMarkdown',
-        content: content,
-        filename: suggestedName
-      });
-
-      if (mdResult.success) {
-        showFeedback("Saved to Downloads/EzyCopy!", "#4caf50");
+        savedToFile = true;
       } else {
         throw new Error(mdResult.error || 'Failed to save markdown');
       }
     }
+
+    // 3. Show success feedback
+    const successMsg = buildSuccessMessage(copiedToClipboard, savedToFile, imageCount, isSelection);
+    showFeedback(successMsg, "#4caf50");
+
   } catch (error) {
     if (error.name === "AbortError") {
-      // User cancelled - no feedback needed
-      return;
+      return; // User cancelled
     }
     console.error("EzyCopy error:", error);
     showFeedback("Error: " + error.message, "#f44336");
   }
 })();
 
+/**
+ * Show toast notification on page
+ */
 function showFeedback(message, bgColor) {
   // Inject keyframes animation if not already present
   if (!document.getElementById('ezycopy-toast-styles')) {
@@ -111,19 +131,22 @@ function showFeedback(message, bgColor) {
     document.head.appendChild(style);
   }
 
-  // Map old colors to new design system
+  // Map colors to design system
   const colorMap = {
     '#4caf50': '#2E7D32',
-    '#f44336': '#D32F2F'
+    '#f44336': '#D32F2F',
+    '#2196F3': '#1976D2'
   };
   const finalColor = colorMap[bgColor] || bgColor;
 
-  // Choose icon based on color (success or error)
+  // Choose icon based on color
   const isSuccess = finalColor === '#2E7D32';
-  const icon = isSuccess ? '\u2713' : '\u2717';
+  const isProgress = finalColor === '#1976D2';
+  const icon = isSuccess ? '\u2713' : (isProgress ? '\u21BB' : '\u2717');
 
-  // Build toast using safe DOM methods
+  // Build toast
   const feedback = document.createElement("div");
+  feedback.className = 'ezycopy-toast';
   feedback.style.cssText = `
     position: fixed;
     top: 20px;
@@ -151,10 +174,18 @@ function showFeedback(message, bgColor) {
 
   feedback.appendChild(iconSpan);
   feedback.appendChild(messageSpan);
+
+  // Remove any existing toast before showing new one
+  const existingToast = document.querySelector('.ezycopy-toast');
+  if (existingToast) existingToast.remove();
+
   document.body.appendChild(feedback);
 
-  setTimeout(() => {
-    feedback.style.animation = 'ezycopySlideOut 0.3s ease forwards';
-    setTimeout(() => feedback.remove(), 300);
-  }, 3000);
+  // Auto-dismiss after 3 seconds (unless it's a progress message)
+  if (!isProgress) {
+    setTimeout(() => {
+      feedback.style.animation = 'ezycopySlideOut 0.3s ease forwards';
+      setTimeout(() => feedback.remove(), 300);
+    }, 3000);
+  }
 }
