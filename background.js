@@ -1,18 +1,9 @@
-// Storage configuration
-const STORAGE_KEY = 'ezycopy_settings';
-const DEFAULT_SETTINGS = {
-  copyToClipboard: true,
-  downloadMarkdown: true,
-  includeImages: true,
-  experimental: {
-    selectiveCopy: false,
-    downloadImagesLocally: false
-  }
-};
+// Shared settings/helpers
+importScripts('settings.js');
+importScripts('file-helpers.js');
 
-// Base folder for downloads (relative to Downloads folder)
-const EZYCOPY_FOLDER = 'EzyCopy';
-const IMAGES_SUBFOLDER = 'images';
+const { sanitizeImageFilename, EZYCOPY_FOLDER, IMAGES_SUBFOLDER } = self.EzyCopyFiles;
+
 
 // Create context menu when extension is installed
 chrome.runtime.onInstalled.addListener(() => {
@@ -33,6 +24,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         "lib/readability.js",
         "lib/turndown.js",
         "lib/turndown-plugin-gfm.js",
+        "file-helpers.js",
         "lib/ezycopy.js",
         "lib/platform.js",
         "content-script.js",
@@ -41,59 +33,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
-// Load settings from storage with migration support
-async function loadSettings() {
-  const result = await chrome.storage.local.get(STORAGE_KEY);
-  const stored = result[STORAGE_KEY] || {};
-
-  return {
-    copyToClipboard: stored.copyToClipboard ?? DEFAULT_SETTINGS.copyToClipboard,
-    downloadMarkdown: stored.downloadMarkdown ?? DEFAULT_SETTINGS.downloadMarkdown,
-    includeImages: stored.includeImages ?? DEFAULT_SETTINGS.includeImages,
-    experimental: {
-      selectiveCopy: stored.experimental?.selectiveCopy ?? false,
-      downloadImagesLocally: stored.experimental?.downloadImagesLocally ?? false
-    }
-  };
-}
-
-/**
- * Generate safe filename from URL
- */
-function sanitizeImageFilename(url, index) {
-  try {
-    const urlObj = new URL(url);
-    let filename = urlObj.pathname.split('/').pop() || `image-${index}`;
-
-    // Remove query string if present
-    filename = filename.split('?')[0];
-
-    // Decode URI components
-    try {
-      filename = decodeURIComponent(filename);
-    } catch (e) {
-      // Keep as-is if decode fails
-    }
-
-    // Replace unsafe characters
-    filename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
-
-    // Ensure it has an extension
-    if (!filename.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)$/i)) {
-      filename += '.png';
-    }
-
-    // Truncate if too long
-    if (filename.length > 200) {
-      const ext = filename.match(/\.[^.]+$/)?.[0] || '.png';
-      filename = filename.substring(0, 200 - ext.length) + ext;
-    }
-
-    return filename;
-  } catch (e) {
-    return `image-${index}.png`;
-  }
-}
+const { loadSettings } = self.EzyCopySettings;
 
 /**
  * Download a single image and return its local path
