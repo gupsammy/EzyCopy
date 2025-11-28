@@ -14,7 +14,7 @@ const IMAGES_SUBFOLDER = 'images';
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "ezycopy-save-content",
-    title: "EzyCopy - Save as Markdown",
+    title: "EzyCopy - Extract Content",
     contexts: ["page", "selection"],
   });
 });
