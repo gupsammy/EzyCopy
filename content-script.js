@@ -1,20 +1,5 @@
-// This script is injected after the lib scripts (readability, turndown, ezycopy)
-// extractContent(), extractContentWithImages(), and generateFilename() are available from lib/ezycopy.js
-
-/**
- * Rewrite image URLs in markdown with local file paths
- */
-function rewriteImagePaths(markdown, urlToPathMap) {
-  let result = markdown;
-
-  for (const [originalUrl, localPath] of Object.entries(urlToPathMap)) {
-    const escapedUrl = originalUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(!\\[[^\\]]*\\]\\()${escapedUrl}((?:\\s+"[^"]*")?\\))`, 'g');
-    result = result.replace(regex, `$1${localPath}$2`);
-  }
-
-  return result;
-}
+// This script is injected after the lib scripts (readability, turndown, ezycopy, platform)
+// extractContent(), extractContentWithImages(), generateFilename(), and rewriteImagePaths() are available from lib/
 
 /**
  * Build success message based on actions performed

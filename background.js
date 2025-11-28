@@ -100,10 +100,12 @@ function downloadImage(imageUrl, savePath) {
         }
 
         // Listen for download completion to get the actual file path
+        let timeoutId = null;
         const listener = (delta) => {
           if (delta.id !== downloadId) return;
 
           if (delta.state && delta.state.current === 'complete') {
+            clearTimeout(timeoutId);
             chrome.downloads.onChanged.removeListener(listener);
             // Get the actual file path
             chrome.downloads.search({ id: downloadId }, (results) => {
@@ -118,6 +120,7 @@ function downloadImage(imageUrl, savePath) {
               }
             });
           } else if (delta.state && delta.state.current === 'interrupted') {
+            clearTimeout(timeoutId);
             chrome.downloads.onChanged.removeListener(listener);
             resolve({ success: false, originalUrl: imageUrl });
           }
@@ -126,7 +129,7 @@ function downloadImage(imageUrl, savePath) {
         chrome.downloads.onChanged.addListener(listener);
 
         // Timeout after 30 seconds
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
           chrome.downloads.onChanged.removeListener(listener);
           resolve({ success: false, originalUrl: imageUrl, error: 'timeout' });
         }, 30000);

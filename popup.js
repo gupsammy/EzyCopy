@@ -96,6 +96,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           "lib/turndown.js",
           "lib/turndown-plugin-gfm.js",
           "lib/ezycopy.js",
+          "lib/platform.js",
           "content-script.js",
         ],
       });
