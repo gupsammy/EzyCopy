@@ -1,8 +1,10 @@
 // Shared settings/helpers
 importScripts('settings.js');
 importScripts('file-helpers.js');
+importScripts('injection-files.js');
 
 const { sanitizeImageFilename, EZYCOPY_FOLDER, IMAGES_SUBFOLDER } = self.EzyCopyFiles;
+const { CONTENT_SCRIPTS } = self.EzyCopyInjection;
 
 
 // Create context menu when extension is installed
@@ -20,15 +22,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     // Inject libraries first, then the content script
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      files: [
-        "lib/readability.js",
-        "lib/turndown.js",
-        "lib/turndown-plugin-gfm.js",
-        "file-helpers.js",
-        "lib/ezycopy.js",
-        "lib/platform.js",
-        "content-script.js",
-      ],
+      files: CONTENT_SCRIPTS,
     });
   }
 });

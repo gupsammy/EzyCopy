@@ -98,13 +98,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         files: [
-          "lib/readability.js",
-          "lib/turndown.js",
-          "lib/turndown-plugin-gfm.js",
-          "file-helpers.js",
-          "lib/ezycopy.js",
-          "lib/platform.js",
-          "content-script.js",
+          ...window.EzyCopyInjection.CONTENT_SCRIPTS,
         ],
       });
 
