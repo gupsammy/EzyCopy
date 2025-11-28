@@ -1,19 +1,130 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const saveButton = document.getElementById("saveContent");
-  const statusDiv = document.getElementById("status");
+// Storage configuration
+const STORAGE_KEY = 'ezycopy_settings';
+const DEFAULT_SETTINGS = {
+  copyToClipboard: true,
+  downloadMarkdown: true,
+  includeImages: true,
+  experimental: {
+    selectiveCopy: false,
+    downloadImagesLocally: false
+  }
+};
 
-  saveButton.addEventListener("click", async () => {
+// Ensure at least one output method is active
+function enforceAtLeastOneActive(settings, changedToggle) {
+  if (changedToggle === 'copyToClipboard' && !settings.copyToClipboard && !settings.downloadMarkdown) {
+    settings.downloadMarkdown = true;
+  }
+  if (changedToggle === 'downloadMarkdown' && !settings.downloadMarkdown && !settings.copyToClipboard) {
+    settings.copyToClipboard = true;
+  }
+  return settings;
+}
+
+// Load settings from chrome.storage.local with migration support
+async function loadSettings() {
+  const result = await chrome.storage.local.get(STORAGE_KEY);
+  const stored = result[STORAGE_KEY] || {};
+
+  return {
+    copyToClipboard: stored.copyToClipboard ?? DEFAULT_SETTINGS.copyToClipboard,
+    downloadMarkdown: stored.downloadMarkdown ?? DEFAULT_SETTINGS.downloadMarkdown,
+    includeImages: stored.includeImages ?? DEFAULT_SETTINGS.includeImages,
+    experimental: {
+      selectiveCopy: stored.experimental?.selectiveCopy ?? false,
+      downloadImagesLocally: stored.experimental?.downloadImagesLocally ?? false
+    }
+  };
+}
+
+// Save settings to chrome.storage.local
+async function saveSettings(settings) {
+  await chrome.storage.local.set({ [STORAGE_KEY]: settings });
+}
+
+document.addEventListener("DOMContentLoaded", async function () {
+  // DOM elements - main settings
+  const ezycopyBtn = document.getElementById("ezycopyBtn");
+  const copyToClipboardToggle = document.getElementById("copyToClipboard");
+  const downloadMarkdownToggle = document.getElementById("downloadMarkdown");
+  const includeImagesToggle = document.getElementById("includeImages");
+
+  // DOM elements - experimental settings
+  const selectiveCopyToggle = document.getElementById("selectiveCopy");
+  const downloadImagesLocallyToggle = document.getElementById("downloadImagesLocally");
+  const downloadImagesRow = document.getElementById("downloadImagesRow");
+
+  // Update download images toggle visibility
+  // Only visible when BOTH download markdown AND include images are enabled
+  function updateDownloadImagesVisibility(downloadMarkdown, includeImages) {
+    if (downloadMarkdown && includeImages) {
+      downloadImagesRow.classList.remove("hidden");
+    } else {
+      downloadImagesRow.classList.add("hidden");
+    }
+  }
+
+  // Initialize toggle states from storage
+  const settings = await loadSettings();
+  copyToClipboardToggle.checked = settings.copyToClipboard;
+  downloadMarkdownToggle.checked = settings.downloadMarkdown;
+  includeImagesToggle.checked = settings.includeImages;
+  selectiveCopyToggle.checked = settings.experimental.selectiveCopy;
+  downloadImagesLocallyToggle.checked = settings.experimental.downloadImagesLocally;
+  updateDownloadImagesVisibility(settings.downloadMarkdown, settings.includeImages);
+
+  // Handle copy to clipboard toggle
+  copyToClipboardToggle.addEventListener("change", async (e) => {
+    let currentSettings = await loadSettings();
+    currentSettings.copyToClipboard = e.target.checked;
+    currentSettings = enforceAtLeastOneActive(currentSettings, 'copyToClipboard');
+    await saveSettings(currentSettings);
+    // Sync UI if enforcement changed the other toggle
+    downloadMarkdownToggle.checked = currentSettings.downloadMarkdown;
+    updateDownloadImagesVisibility(currentSettings.downloadMarkdown, currentSettings.includeImages);
+  });
+
+  // Handle download markdown toggle
+  downloadMarkdownToggle.addEventListener("change", async (e) => {
+    let currentSettings = await loadSettings();
+    currentSettings.downloadMarkdown = e.target.checked;
+    currentSettings = enforceAtLeastOneActive(currentSettings, 'downloadMarkdown');
+    await saveSettings(currentSettings);
+    // Sync UI if enforcement changed the other toggle
+    copyToClipboardToggle.checked = currentSettings.copyToClipboard;
+    updateDownloadImagesVisibility(currentSettings.downloadMarkdown, currentSettings.includeImages);
+  });
+
+  // Handle selective copy toggle
+  selectiveCopyToggle.addEventListener("change", async (e) => {
+    const currentSettings = await loadSettings();
+    currentSettings.experimental.selectiveCopy = e.target.checked;
+    await saveSettings(currentSettings);
+  });
+
+  // Handle include images toggle
+  includeImagesToggle.addEventListener("change", async (e) => {
+    const currentSettings = await loadSettings();
+    currentSettings.includeImages = e.target.checked;
+    await saveSettings(currentSettings);
+    updateDownloadImagesVisibility(currentSettings.downloadMarkdown, e.target.checked);
+  });
+
+  // Handle download images locally toggle
+  downloadImagesLocallyToggle.addEventListener("change", async (e) => {
+    const currentSettings = await loadSettings();
+    currentSettings.experimental.downloadImagesLocally = e.target.checked;
+    await saveSettings(currentSettings);
+  });
+
+  // Handle EzyCopy button click - inject content script and close popup
+  ezycopyBtn.addEventListener("click", async () => {
     try {
-      saveButton.disabled = true;
-      statusDiv.textContent = "Extracting content...";
+      ezycopyBtn.disabled = true;
 
-      // Get the current active tab
-      const [tab] = await chrome.tabs.query({
-        active: true,
-        currentWindow: true,
-      });
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-      // Inject libraries first, then extract content
+      // Inject libs + content-script (same as context menu)
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         files: [
@@ -21,50 +132,18 @@ document.addEventListener("DOMContentLoaded", function () {
           "lib/turndown.js",
           "lib/turndown-plugin-gfm.js",
           "lib/ezycopy.js",
+          "lib/platform.js",
+          "content-script.js",
         ],
       });
 
-      // Now call extractContent and generateFilename from ezycopy.js
-      const [{ result }] = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: () => {
-          const { content } = extractContent();
-          return { content, suggestedName: generateFilename(content) };
-        },
-      });
+      // Toast on page handles all feedback - close popup
+      window.close();
 
-      const { content, suggestedName } = result;
-
-      try {
-        // Show file picker dialog
-        const handle = await window.showSaveFilePicker({
-          suggestedName: suggestedName,
-          types: [
-            {
-              description: "Markdown File",
-              accept: { "text/markdown": [".md"] },
-            },
-          ],
-        });
-
-        // Write the content
-        const writable = await handle.createWritable();
-        await writable.write(content);
-        await writable.close();
-
-        statusDiv.textContent = "Saved successfully!";
-      } catch (error) {
-        if (error.name === "AbortError") {
-          statusDiv.textContent = "Save cancelled";
-        } else {
-          throw error;
-        }
-      }
     } catch (error) {
-      console.error("Error:", error);
-      statusDiv.textContent = "Error: " + error.message;
-    } finally {
-      saveButton.disabled = false;
+      console.error("EzyCopy error:", error);
+      // Re-enable button on error so user can retry
+      ezycopyBtn.disabled = false;
     }
   });
 });

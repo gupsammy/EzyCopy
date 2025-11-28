@@ -3,7 +3,7 @@
   "name": "EzyCopy",
   "version": "2.0",
   "description": "Extract and save webpage content as markdown files",
-  "permissions": ["activeTab", "scripting", "contextMenus"],
+  "permissions": ["activeTab", "scripting", "contextMenus", "storage", "downloads"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
