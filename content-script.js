@@ -66,28 +66,22 @@ function rewriteImagePaths(markdown, urlToPathMap) {
       }
 
     } else {
-      // Original behavior: file picker, no image download
+      // Extract content without images, save directly to Downloads/EzyCopy
       const { content } = extractContent();
       const suggestedName = generateFilename(content);
 
-      // Show file picker dialog (defaults to Downloads folder)
-      const handle = await window.showSaveFilePicker({
-        suggestedName: suggestedName,
-        startIn: 'downloads',
-        types: [
-          {
-            description: "Markdown File",
-            accept: { "text/markdown": [".md"] },
-          },
-        ],
+      // Save markdown to EzyCopy folder via background
+      const mdResult = await chrome.runtime.sendMessage({
+        action: 'downloadMarkdown',
+        content: content,
+        filename: suggestedName
       });
 
-      // Write the content
-      const writable = await handle.createWritable();
-      await writable.write(content);
-      await writable.close();
-
-      showFeedback("Content saved successfully!", "#4caf50");
+      if (mdResult.success) {
+        showFeedback("Saved to Downloads/EzyCopy!", "#4caf50");
+      } else {
+        throw new Error(mdResult.error || 'Failed to save markdown');
+      }
     }
   } catch (error) {
     if (error.name === "AbortError") {

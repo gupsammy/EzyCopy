@@ -132,7 +132,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
       } else {
-        // Original behavior: file picker, no image download
+        // Extract content without images, save directly to Downloads/EzyCopy
         const [{ result }] = await chrome.scripting.executeScript({
           target: { tabId: tab.id },
           func: () => {
@@ -143,31 +143,17 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const { content, suggestedName } = result;
 
-        try {
-          // Show file picker dialog (defaults to Downloads folder)
-          const handle = await window.showSaveFilePicker({
-            suggestedName: suggestedName,
-            startIn: 'downloads',
-            types: [
-              {
-                description: "Markdown File",
-                accept: { "text/markdown": [".md"] },
-              },
-            ],
-          });
+        // Save markdown to EzyCopy folder via background
+        const mdResult = await chrome.runtime.sendMessage({
+          action: 'downloadMarkdown',
+          content: content,
+          filename: suggestedName
+        });
 
-          // Write the content
-          const writable = await handle.createWritable();
-          await writable.write(content);
-          await writable.close();
-
-          setStatus(statusDiv, "Saved successfully!", "success");
-        } catch (error) {
-          if (error.name === "AbortError") {
-            setStatus(statusDiv, "Save cancelled", "cancelled");
-          } else {
-            throw error;
-          }
+        if (mdResult.success) {
+          setStatus(statusDiv, "Saved to Downloads/EzyCopy!", "success");
+        } else {
+          throw new Error(mdResult.error || 'Failed to save markdown');
         }
       }
     } catch (error) {
