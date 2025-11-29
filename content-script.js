@@ -55,8 +55,8 @@ async function downloadMarkdownFile(content, filename) {
     const { copyToClipboard: shouldCopy, downloadMarkdown: shouldDownload, includeImages } = settings;
     const { selectiveCopy, downloadImagesLocally } = settings.experimental || {};
 
-    // Extract content (respects selectiveCopy setting)
-    const extraction = extractContent({ selectiveCopy });
+    // Extract content (respects selectiveCopy and includeImages settings)
+    const extraction = extractContent({ selectiveCopy, includeImages });
 
     let clipboardContent = null;
     let downloadContent = null;
