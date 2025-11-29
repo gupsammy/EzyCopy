@@ -1,14 +1,4 @@
-// Storage configuration
-const STORAGE_KEY = 'ezycopy_settings';
-const DEFAULT_SETTINGS = {
-  copyToClipboard: true,
-  downloadMarkdown: true,
-  includeImages: true,
-  experimental: {
-    selectiveCopy: false,
-    downloadImagesLocally: false
-  }
-};
+const { loadSettings, saveSettings } = window.EzyCopySettings;
 
 // Ensure at least one output method is active
 function enforceAtLeastOneActive(settings, changedToggle) {
@@ -21,26 +11,6 @@ function enforceAtLeastOneActive(settings, changedToggle) {
   return settings;
 }
 
-// Load settings from chrome.storage.local with migration support
-async function loadSettings() {
-  const result = await chrome.storage.local.get(STORAGE_KEY);
-  const stored = result[STORAGE_KEY] || {};
-
-  return {
-    copyToClipboard: stored.copyToClipboard ?? DEFAULT_SETTINGS.copyToClipboard,
-    downloadMarkdown: stored.downloadMarkdown ?? DEFAULT_SETTINGS.downloadMarkdown,
-    includeImages: stored.includeImages ?? DEFAULT_SETTINGS.includeImages,
-    experimental: {
-      selectiveCopy: stored.experimental?.selectiveCopy ?? false,
-      downloadImagesLocally: stored.experimental?.downloadImagesLocally ?? false
-    }
-  };
-}
-
-// Save settings to chrome.storage.local
-async function saveSettings(settings) {
-  await chrome.storage.local.set({ [STORAGE_KEY]: settings });
-}
 
 document.addEventListener("DOMContentLoaded", async function () {
   // DOM elements - main settings
@@ -128,12 +98,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         files: [
-          "lib/readability.js",
-          "lib/turndown.js",
-          "lib/turndown-plugin-gfm.js",
-          "lib/ezycopy.js",
-          "lib/platform.js",
-          "content-script.js",
+          ...window.EzyCopyInjection.CONTENT_SCRIPTS,
         ],
       });
 
