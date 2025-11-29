@@ -43,16 +43,6 @@
     }
   }
 
-  function generatePageSubfolder(pageTitle) {
-    const safeTitle = pageTitle
-      .substring(0, 50)
-      .replace(/[^a-zA-Z0-9]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
-    const timestamp = new Date().toISOString().slice(0, 10);
-    return `${safeTitle}-${timestamp}`;
-  }
-
   function rewriteImagePaths(markdown, urlToPathMap) {
     let result = markdown;
 
@@ -71,7 +61,6 @@
     getBasePath,
     getImagesPath,
     sanitizeImageFilename,
-    generatePageSubfolder,
     rewriteImagePaths,
   };
 })(typeof self !== 'undefined' ? self : this);

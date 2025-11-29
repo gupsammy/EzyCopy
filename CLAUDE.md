@@ -21,16 +21,16 @@ icons/                   → Extension icons (16, 48, 128px)
 ## Architecture
 
 **Two Trigger Methods:**
-- Popup button → `popup.js` injects libs + calls `extractContent()` + `generateFilename()`
+- Popup button → `popup.js` injects libs + calls `extractContent()` + `generateBaseName()`
 - Right-click menu → `background.js` injects libs + `content-script.js`
 
 **Data Flow:**
 1. Inject `lib/*.js` scripts into page context
-2. `extractContent()` uses Readability to extract article content
+2. `extractContent()` uses Readability to extract article content (includes pre-analyzed images)
 3. Turndown converts HTML to Markdown (with GFM tables/strikethrough)
-4. `generateFilename()` creates safe filename from title + date
-5. Images embedded as `![alt](url)` - no local download
-6. Markdown saved via `window.showSaveFilePicker()`
+4. `generateBaseName()` creates safe base name from title + date
+5. Images embedded as `![alt](url)` or downloaded locally (experimental setting)
+6. Markdown saved via Chrome downloads API to `Downloads/EzyCopy/`
 
 ## Key Libraries
 

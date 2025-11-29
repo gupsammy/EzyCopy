@@ -49,7 +49,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     currentSettings.copyToClipboard = e.target.checked;
     currentSettings = enforceAtLeastOneActive(currentSettings, 'copyToClipboard');
     await saveSettings(currentSettings);
-    // Sync UI if enforcement changed the other toggle
+    // Sync both toggles in case enforcement changed either
+    copyToClipboardToggle.checked = currentSettings.copyToClipboard;
     downloadMarkdownToggle.checked = currentSettings.downloadMarkdown;
     updateDownloadImagesVisibility(currentSettings.downloadMarkdown, currentSettings.includeImages);
   });
@@ -60,8 +61,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     currentSettings.downloadMarkdown = e.target.checked;
     currentSettings = enforceAtLeastOneActive(currentSettings, 'downloadMarkdown');
     await saveSettings(currentSettings);
-    // Sync UI if enforcement changed the other toggle
+    // Sync both toggles in case enforcement changed either
     copyToClipboardToggle.checked = currentSettings.copyToClipboard;
+    downloadMarkdownToggle.checked = currentSettings.downloadMarkdown;
     updateDownloadImagesVisibility(currentSettings.downloadMarkdown, currentSettings.includeImages);
   });
 

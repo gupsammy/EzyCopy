@@ -1,6 +1,7 @@
-// This script is injected after the lib scripts (readability, turndown, ezycopy, platform)
-// extractContent(), formatContent(), generateFilename(), generateSubfolder(),
-// extractImagesFromHtml(), and rewriteImagePaths() are available from lib/
+// This script is injected after the lib scripts (readability, turndown, ezycopy)
+// extractContent(), formatContent(), generateBaseName() are global functions from lib/ezycopy.js
+// extraction.images contains pre-analyzed image data (no need for separate extraction call)
+// EzyCopyFiles.rewriteImagePaths() is available from file-helpers.js
 
 /**
  * Build success message based on actions performed
@@ -72,27 +73,26 @@ async function downloadMarkdownFile(content, filename) {
       downloadContent = formatContent(extraction, 'download', settings);
 
       // Handle image downloads if all conditions met
-      if (includeImages && downloadImagesLocally && extraction.html) {
-        const images = extractImagesFromHtml(extraction.html);
-        if (images.length > 0) {
-          showFeedback(`Downloading ${images.length} images...`, "#2196F3");
+      // Images are pre-analyzed in extraction result (single-pass optimization)
+      if (includeImages && downloadImagesLocally && extraction.images?.length > 0) {
+        const images = extraction.images;
+        showFeedback(`Downloading ${images.length} images...`, "#2196F3");
 
-          const subfolder = generateSubfolder(extraction.title);
-          const imageResult = await chrome.runtime.sendMessage({
-            action: 'downloadImages',
-            images: images,
-            subfolder: subfolder
-          });
+        const subfolder = generateBaseName(extraction.title);
+        const imageResult = await chrome.runtime.sendMessage({
+          action: 'downloadImages',
+          images: images,
+          subfolder: subfolder
+        });
 
-          if (imageResult.downloadedCount > 0) {
-            downloadContent = rewriteImagePaths(downloadContent, imageResult.urlToPathMap);
-            imageCount = imageResult.downloadedCount;
-          }
+        if (imageResult.downloadedCount > 0) {
+          downloadContent = EzyCopyFiles.rewriteImagePaths(downloadContent, imageResult.urlToPathMap);
+          imageCount = imageResult.downloadedCount;
         }
       }
     }
 
-    const filename = generateFilename(extraction.title);
+    const filename = generateBaseName(extraction.title) + '.md';
 
     // Execute outputs
     let copiedToClipboard = false;

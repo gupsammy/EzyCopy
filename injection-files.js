@@ -8,7 +8,6 @@
     "lib/turndown-plugin-gfm.js",
     "file-helpers.js",
     "lib/ezycopy.js",
-    "lib/platform.js",
     "content-script.js",
   ];
 
