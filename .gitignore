@@ -1,6 +1,6 @@
 # Binaries
-ezycopy
-ezycopy.exe
+/ezycopy
+/ezycopy.exe
 *.exe
 *.exe~
 *.dll
