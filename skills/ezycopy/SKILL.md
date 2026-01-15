@@ -10,7 +10,7 @@ description: >
 
 # EzyCopy CLI
 
-Extracts clean markdown from URLs using headless Chrome + Mozilla Readability. Handles JS-heavy sites and authenticated content via Chrome profile cookies.
+Extracts clean markdown from URLs. Default: fast HTTP fetch. Use `--browser` for Chrome when needed.
 
 ## Usage
 
@@ -19,12 +19,17 @@ ezycopy <URL> [flags]
 ```
 
 **Flags:**
+- `--browser` — Use Chrome (for JS-heavy or authenticated sites)
 - `-o <path>` — Save to file/directory (default: clipboard)
 - `--no-images` — Strip image links
 - `-t <duration>` — Timeout (default: 30s)
 
+## When to use `--browser`
+
+- Twitter/X, SPAs, or JS-rendered sites
+- Authenticated/paywalled content
+- If default returns empty or suspiciously short content
+
 ## Install
 
-If not installed: `go install github.com/gupsammy/EzyCopyCLI@latest`
-
-First run auto-downloads Chromium if Chrome unavailable.
+If not installed: `go install github.com/gupsammy/EzyCopyCLI/cmd/ezycopy@latest`

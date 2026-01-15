@@ -17,6 +17,12 @@ A command-line tool for extracting web content as clean markdown. Companion to t
 
 ## Installation
 
+### Quick Install (Recommended)
+
+```bash
+curl -sSL https://raw.githubusercontent.com/gupsammy/EzyCopyCLI/main/install.sh | sh
+```
+
 ### Download Binary
 
 Download the latest release for your platform:
@@ -27,8 +33,10 @@ Available for macOS (Intel & Apple Silicon), Linux, and Windows.
 
 ### With Go
 
+Requires [Go 1.21+](https://go.dev/dl/)
+
 ```bash
-go install github.com/gupsammy/EzyCopyCLI@latest
+go install github.com/gupsammy/EzyCopyCLI/cmd/ezycopy@latest
 ```
 
 ### From Source
@@ -36,7 +44,7 @@ go install github.com/gupsammy/EzyCopyCLI@latest
 ```bash
 git clone https://github.com/gupsammy/EzyCopyCLI.git
 cd EzyCopyCLI
-go build -o ezycopy .
+go build -o ezycopy ./cmd/ezycopy
 ```
 
 ## Usage
@@ -44,6 +52,9 @@ go build -o ezycopy .
 ```bash
 # Extract article and copy to clipboard
 ezycopy https://example.com/article
+
+# Use Chrome for JS-heavy sites (Twitter, SPAs)
+ezycopy --browser https://x.com/user/status/123
 
 # Save to file (auto-generates filename from title)
 ezycopy https://example.com/article -o ~/Downloads/
@@ -62,6 +73,7 @@ ezycopy https://example.com/article -t 60s
 
 | Flag | Short | Default | Description |
 |------|-------|---------|-------------|
+| `--browser` | — | `false` | Use Chrome (for JS-heavy or authenticated sites) |
 | `--output` | `-o` | — | Output file or directory |
 | `--no-images` | — | `false` | Remove image links from markdown |
 | `--timeout` | `-t` | `30s` | Page load timeout |
@@ -70,18 +82,26 @@ ezycopy https://example.com/article -t 60s
 
 ## How It Works
 
-ezycopy renders pages in a headless Chrome browser before extraction. This means:
+By default, ezycopy uses fast HTTP fetching — no browser overhead, instant results. This works great for most articles and blogs.
 
-- JavaScript-heavy sites (Twitter/X, SPAs) render correctly
+For JS-heavy sites (Twitter/X, SPAs) or authenticated content, use `--browser` to render pages in headless Chrome:
+
+- JavaScript renders correctly before extraction
 - Your existing Chrome sessions provide authentication
 - Dynamic content loads before extraction
 
-On first run, it will use your installed Chrome. If Chrome isn't available, it downloads a compatible Chromium automatically.
+On first `--browser` run, it will use your installed Chrome. If Chrome isn't available, it downloads a compatible Chromium automatically.
 
 ## Requirements
 
 - macOS, Linux, or Windows
-- Google Chrome recommended (Chromium works too)
+- Google Chrome (only needed for `--browser` mode)
+
+## Uninstall
+
+```bash
+curl -sSL https://raw.githubusercontent.com/gupsammy/EzyCopyCLI/main/uninstall.sh | sh
+```
 
 ## Related
 

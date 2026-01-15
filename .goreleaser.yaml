@@ -8,7 +8,7 @@ before:
 
 builds:
   - id: ezycopy
-    main: .
+    main: ./cmd/ezycopy
     binary: ezycopy
     env:
       - CGO_ENABLED=0

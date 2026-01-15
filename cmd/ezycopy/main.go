@@ -12,11 +12,12 @@ import (
 )
 
 var (
-	version = "0.1.0"
+	version = "0.2.0"
 
-	outputFlag   string
-	noImages     bool
-	timeout      time.Duration
+	outputFlag  string
+	noImages    bool
+	timeout     time.Duration
+	browserFlag bool
 )
 
 func main() {
@@ -24,10 +25,11 @@ func main() {
 		Use:   "ezycopy <url>",
 		Short: "Extract web content as markdown",
 		Long: `EzyCopy extracts article content from web pages and converts it to markdown.
-Uses your Chrome browser profile for authentication (Twitter, paywalled sites, etc).
 
-By default, content is printed to stdout and copied to clipboard.
-Use -o to save to a file instead.`,
+By default, uses fast HTTP fetch. Use --browser for JS-heavy sites (Twitter, SPAs)
+or authenticated content (uses your Chrome profile).
+
+Content is printed to stdout and copied to clipboard. Use -o to save to a file.`,
 		Args:    cobra.ExactArgs(1),
 		Version: version,
 		RunE:    run,
@@ -36,6 +38,7 @@ Use -o to save to a file instead.`,
 	rootCmd.Flags().StringVarP(&outputFlag, "output", "o", "", "Save to file (directory auto-generates name)")
 	rootCmd.Flags().BoolVar(&noImages, "no-images", false, "Strip image links from output")
 	rootCmd.Flags().DurationVarP(&timeout, "timeout", "t", 30*time.Second, "Page load timeout")
+	rootCmd.Flags().BoolVar(&browserFlag, "browser", false, "Use Chrome browser (for JS-heavy or authenticated sites)")
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(2)
@@ -51,8 +54,15 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Fetch page
-	fmt.Fprintln(os.Stderr, "Fetching page...")
-	pageResult, err := extractor.FetchPage(inputURL, timeout)
+	var pageResult *extractor.PageResult
+	var err error
+	if browserFlag {
+		fmt.Fprintln(os.Stderr, "Fetching page (browser)...")
+		pageResult, err = extractor.FetchPage(inputURL, timeout)
+	} else {
+		fmt.Fprintln(os.Stderr, "Fetching page...")
+		pageResult, err = extractor.FetchPageHTTP(inputURL, timeout)
+	}
 	if err != nil {
 		return fmt.Errorf("failed to fetch page: %w", err)
 	}
