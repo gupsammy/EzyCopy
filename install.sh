@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-REPO="gupsammy/EzyCopyCLI"
+REPO="gupsammy/EzyCopy"
 BINARY="ezycopy"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 

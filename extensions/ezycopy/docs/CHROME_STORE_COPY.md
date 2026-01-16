@@ -55,7 +55,7 @@ Extract and save webpage article content as Markdown files
 ### Privacy Policy URL
 
 ```
-https://raw.githubusercontent.com/gupsammy/EzyCopy/main/PRIVACY_POLICY.md
+https://raw.githubusercontent.com/gupsammy/EzyCopy/main/extensions/ezycopy/PRIVACY_POLICY.md
 ```
 
 ### Permission Justifications
@@ -126,14 +126,14 @@ Check all boxes confirming:
 
 ```
 Promo tile (440x280):
-/Users/samarthgupta/repos/ChromeExtensions/EzyCopy/assets/promo-tile-440x280.png
+extensions/ezycopy/assets/promo-tile-440x280.png
 
 Screenshot 1 (1280x800):
-/Users/samarthgupta/repos/ChromeExtensions/EzyCopy/assets/screenshot-1-1280x800.png
+extensions/ezycopy/assets/screenshot-1-1280x800.png
 
 Screenshot 2 (1280x800):
-/Users/samarthgupta/repos/ChromeExtensions/EzyCopy/assets/screenshot-2-1280x800.png
+extensions/ezycopy/assets/screenshot-2-1280x800.png
 
 Screenshot 3 (1280x800):
-/Users/samarthgupta/repos/ChromeExtensions/EzyCopy/assets/screenshot-3-1280x800.png
+extensions/ezycopy/assets/screenshot-3-1280x800.png
 ```

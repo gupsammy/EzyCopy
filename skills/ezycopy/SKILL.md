@@ -32,4 +32,4 @@ ezycopy <URL> [flags]
 
 ## Install
 
-If not installed: `go install github.com/gupsammy/EzyCopyCLI/cmd/ezycopy@latest`
+If not installed: `go install github.com/gupsammy/EzyCopy@latest`

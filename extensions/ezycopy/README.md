@@ -48,7 +48,7 @@ Coming soon!
    - Navigate to `chrome://extensions/`
    - Enable **Developer mode** (top right)
    - Click **Load unpacked**
-   - Select the EzyCopy folder
+   - Select the `extensions/ezycopy` folder
 
 ## Usage
 

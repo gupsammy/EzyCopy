@@ -1,4 +1,4 @@
-module github.com/gupsammy/EzyCopyCLI
+module github.com/gupsammy/EzyCopy
 
 go 1.24.0
 

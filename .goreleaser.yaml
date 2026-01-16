@@ -8,7 +8,7 @@ before:
 
 builds:
   - id: ezycopy
-    main: ./cmd/ezycopy
+    main: .
     binary: ezycopy
     env:
       - CGO_ENABLED=0
@@ -45,7 +45,7 @@ changelog:
 release:
   github:
     owner: gupsammy
-    name: EzyCopyCLI
+    name: EzyCopy
   draft: false
   prerelease: auto
   name_template: "{{.ProjectName}} v{{.Version}}"

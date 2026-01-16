@@ -1,11 +1,11 @@
-# EzyCopyCLI
+# EzyCopy
 
-[![Go Version](https://img.shields.io/github/go-mod/go-version/gupsammy/EzyCopyCLI)](https://go.dev/)
-[![Release](https://img.shields.io/github/v/release/gupsammy/EzyCopyCLI)](https://github.com/gupsammy/EzyCopyCLI/releases/latest)
-[![License](https://img.shields.io/github/license/gupsammy/EzyCopyCLI)](LICENSE)
-[![Go Report Card](https://goreportcard.com/badge/github.com/gupsammy/EzyCopyCLI)](https://goreportcard.com/report/github.com/gupsammy/EzyCopyCLI)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/gupsammy/EzyCopy)](https://go.dev/)
+[![Release](https://img.shields.io/github/v/release/gupsammy/EzyCopy)](https://github.com/gupsammy/EzyCopy/releases/latest)
+[![License](https://img.shields.io/github/license/gupsammy/EzyCopy)](LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/gupsammy/EzyCopy)](https://goreportcard.com/report/github.com/gupsammy/EzyCopy)
 
-A command-line tool for extracting web content as clean markdown. Companion to the [EzyCopy Chrome Extension](https://github.com/gupsammy/EzyCopy).
+Extract web content as clean markdown. Available as a CLI tool and Chrome extension.
 
 ## Features
 
@@ -20,14 +20,14 @@ A command-line tool for extracting web content as clean markdown. Companion to t
 ### Quick Install (Recommended)
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/gupsammy/EzyCopyCLI/main/install.sh | sh
+curl -sSL https://raw.githubusercontent.com/gupsammy/EzyCopy/main/install.sh | sh
 ```
 
 ### Download Binary
 
 Download the latest release for your platform:
 
-**[Latest Release](https://github.com/gupsammy/EzyCopyCLI/releases/latest)**
+**[Latest Release](https://github.com/gupsammy/EzyCopy/releases/latest)**
 
 Available for macOS (Intel & Apple Silicon), Linux, and Windows.
 
@@ -36,15 +36,15 @@ Available for macOS (Intel & Apple Silicon), Linux, and Windows.
 Requires [Go 1.21+](https://go.dev/dl/)
 
 ```bash
-go install github.com/gupsammy/EzyCopyCLI/cmd/ezycopy@latest
+go install github.com/gupsammy/EzyCopy@latest
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/gupsammy/EzyCopyCLI.git
-cd EzyCopyCLI
-go build -o ezycopy ./cmd/ezycopy
+git clone https://github.com/gupsammy/EzyCopy.git
+cd EzyCopy
+go build -o ezycopy .
 ```
 
 ## Usage
@@ -97,15 +97,27 @@ On first `--browser` run, it will use your installed Chrome. If Chrome isn't ava
 - macOS, Linux, or Windows
 - Google Chrome (only needed for `--browser` mode)
 
+## Chrome Extension
+
+The Chrome extension provides the same extraction capabilities directly in your browser. See [extensions/ezycopy/](extensions/ezycopy/) for installation instructions.
+
+## Repository Structure
+
+```
+EzyCopy/
+├── main.go              # CLI entry point
+├── extractor/           # Content extraction logic
+├── output/              # Output handling (clipboard, file)
+├── extensions/ezycopy/  # Chrome extension
+├── skills/ezycopy/      # Claude Code skill
+└── ...
+```
+
 ## Uninstall
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/gupsammy/EzyCopyCLI/main/uninstall.sh | sh
+curl -sSL https://raw.githubusercontent.com/gupsammy/EzyCopy/main/uninstall.sh | sh
 ```
-
-## Related
-
-- [EzyCopy Chrome Extension](https://github.com/gupsammy/EzyCopy) — Browser extension with the same extraction capabilities
 
 ## License
 

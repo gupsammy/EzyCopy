@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/gupsammy/EzyCopyCLI/extractor"
-	"github.com/gupsammy/EzyCopyCLI/output"
+	"github.com/gupsammy/EzyCopy/extractor"
+	"github.com/gupsammy/EzyCopy/output"
 	"github.com/spf13/cobra"
 )
 
