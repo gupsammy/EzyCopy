@@ -19,8 +19,9 @@ ezycopy <URL> [flags]
 ```
 
 **Flags:**
+- `-c` — Copy output to clipboard
+- `-o <path>` — Save to file/directory
 - `--browser` — Use Chrome (for JS-heavy or authenticated sites)
-- `-o <path>` — Save to file/directory (default: clipboard)
 - `--no-images` — Strip image links
 - `-t <duration>` — Timeout (default: 30s)
 
