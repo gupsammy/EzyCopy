@@ -1,0 +1,191 @@
+:root {
+  --primary: #0D9488;
+  --primary-hover: #14B8A6;
+  --background: #FAFAFA;
+  --surface: #FFFFFF;
+  --text-primary: #1A1A1A;
+  --text-secondary: #666666;
+  --error: #D32F2F;
+  --border: #E0E0E0;
+  --toggle-off: #BDBDBD;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: 320px;
+  background: var(--background);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  color: var(--text-primary);
+}
+
+.popup-container {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main Action */
+.main {
+  padding: 20px 16px 16px;
+  background: var(--surface);
+}
+
+/* Hero Button */
+.btn-hero {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 24px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
+}
+
+.btn-hero:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.4);
+}
+
+.btn-hero:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(13, 148, 136, 0.3);
+}
+
+.btn-hero:disabled {
+  background: var(--toggle-off);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.hero-logo {
+  flex-shrink: 0;
+}
+
+.hero-text {
+  letter-spacing: 0.5px;
+}
+
+/* Settings Section */
+.settings {
+  padding: 16px;
+  background: var(--background);
+  border-top: 1px solid var(--border);
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.setting-row + .setting-row {
+  margin-top: 12px;
+}
+
+.setting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.setting-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.setting-description {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Conditional setting row (can be hidden) */
+.setting-row.hidden {
+  display: none;
+}
+
+/* Toggle Switch */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--toggle-off);
+  transition: background-color 0.2s ease;
+  border-radius: 24px;
+}
+
+.toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: transform 0.2s ease;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggle input:checked + .toggle-slider {
+  background-color: var(--primary);
+}
+
+.toggle input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+}
+
+.toggle input:focus + .toggle-slider {
+  outline: 2px solid var(--primary-hover);
+  outline-offset: 2px;
+}
+
+/* Experimental Section */
+.experimental-section {
+  border-top: 1px dashed #ffa726;
+  margin-top: 0;
+  padding-top: 12px;
+}
+
+.experimental-header {
+  margin-bottom: 12px;
+}
+
+.experimental-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #ffa726;
+  letter-spacing: 0.5px;
+}

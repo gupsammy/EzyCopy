@@ -48,3 +48,7 @@ debug
 # Local config
 .env
 .env.local
+
+# Extension artifacts
+extensions/**/*.zip
+extensions/**/assets/

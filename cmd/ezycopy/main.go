@@ -14,10 +14,11 @@ import (
 var (
 	version = "0.2.0"
 
-	outputFlag  string
-	noImages    bool
-	timeout     time.Duration
-	browserFlag bool
+	outputFlag    string
+	noImages      bool
+	timeout       time.Duration
+	browserFlag   bool
+	clipboardFlag bool
 )
 
 func main() {
@@ -29,7 +30,7 @@ func main() {
 By default, uses fast HTTP fetch. Use --browser for JS-heavy sites (Twitter, SPAs)
 or authenticated content (uses your Chrome profile).
 
-Content is printed to stdout and copied to clipboard. Use -o to save to a file.`,
+Content is printed to stdout. Use -c to copy to clipboard, -o to save to a file.`,
 		Args:    cobra.ExactArgs(1),
 		Version: version,
 		RunE:    run,
@@ -39,6 +40,7 @@ Content is printed to stdout and copied to clipboard. Use -o to save to a file.`
 	rootCmd.Flags().BoolVar(&noImages, "no-images", false, "Strip image links from output")
 	rootCmd.Flags().DurationVarP(&timeout, "timeout", "t", 30*time.Second, "Page load timeout")
 	rootCmd.Flags().BoolVar(&browserFlag, "browser", false, "Use Chrome browser (for JS-heavy or authenticated sites)")
+	rootCmd.Flags().BoolVarP(&clipboardFlag, "clipboard", "c", false, "Copy output to clipboard")
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(2)
@@ -84,11 +86,13 @@ func run(cmd *cobra.Command, args []string) error {
 	// Output to stdout
 	fmt.Println(markdown)
 
-	// Copy to clipboard
-	if err := output.CopyToClipboard(markdown); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: failed to copy to clipboard: %v\n", err)
-	} else {
-		fmt.Fprintln(os.Stderr, "Copied to clipboard!")
+	// Copy to clipboard if requested
+	if clipboardFlag {
+		if err := output.CopyToClipboard(markdown); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to copy to clipboard: %v\n", err)
+		} else {
+			fmt.Fprintln(os.Stderr, "Copied to clipboard!")
+		}
 	}
 
 	// Save to file if requested
