@@ -4,6 +4,42 @@ Everything you need to copy for the Chrome Web Store submission.
 
 ---
 
+## Tester Notes (for Reviewer)
+
+Copy this into the "Notes to Reviewer" field when submitting:
+
+```
+HOW TO TEST EZYCOPY:
+
+1. Navigate to any article page. Recommended test pages:
+   - https://en.wikipedia.org/wiki/Markdown
+   - https://medium.com (any article)
+   - https://dev.to (any article)
+   - Any news article or blog post
+
+2. Click the EzyCopy extension icon in the toolbar
+
+3. You will see TWO confirmation indicators:
+   - A green toast notification in the top-right corner saying "Copied & saved to Downloads!"
+   - A green checkmark (✓) badge on the extension icon
+
+4. The markdown file is saved to: Downloads/EzyCopy/[article-title]-[date].md
+
+5. Open the downloaded .md file to verify the content was extracted correctly
+
+IMPORTANT NOTES:
+- The extension ONLY works on regular web pages (http/https)
+- It does NOT work on: chrome:// pages, the new tab page, Chrome Web Store, or PDF files
+- The toast notification stays visible for 5 seconds
+- The extension badge shows a checkmark for 5 seconds after success
+
+STORAGE PERMISSION:
+The "storage" permission is used to save user preferences (toggle settings in the popup).
+No personal data or browsing history is stored. Settings are stored locally in chrome.storage.local.
+```
+
+---
+
 ## Store Listing Tab
 
 ### Short Description (132 chars max)
@@ -104,7 +140,9 @@ If asked about specific data types, select **No** for all:
 - Location: No
 - Web history: No
 - User activity: No
-- Website content: No (we process it locally but don't collect/transmit it)
+- Website content: No
+
+**Note on Website Content:** The extension reads webpage content to extract and convert it to markdown, but this processing happens entirely locally in the browser. The content is immediately saved as a local file and is never transmitted to any external server. No data is collected, stored remotely, or shared with third parties.
 
 ### Certifications
 

@@ -139,6 +139,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // Keep channel open for async response
   }
 
+  if (message.action === 'showBadge') {
+    const tabId = sender.tab?.id;
+    if (!tabId) return;
+
+    if (message.type === 'success') {
+      // Show green checkmark badge
+      chrome.action.setBadgeText({ text: '✓', tabId });
+      chrome.action.setBadgeBackgroundColor({ color: '#4CAF50', tabId });
+
+      // Clear badge after 5 seconds
+      setTimeout(() => {
+        chrome.action.setBadgeText({ text: '', tabId });
+      }, 5000);
+    } else if (message.type === 'error') {
+      // Show red X badge
+      chrome.action.setBadgeText({ text: '✗', tabId });
+      chrome.action.setBadgeBackgroundColor({ color: '#F44336', tabId });
+
+      // Clear badge after 5 seconds
+      setTimeout(() => {
+        chrome.action.setBadgeText({ text: '', tabId });
+      }, 5000);
+    }
+    return;
+  }
+
   if (message.action === 'downloadImages') {
     const { images, subfolder } = message;
 

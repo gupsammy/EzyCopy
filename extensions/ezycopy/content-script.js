@@ -11,14 +11,14 @@ function buildSuccessMessage(copied, saved, imageCount, isSelection) {
 
   if (copied && saved) {
     return imageCount > 0
-      ? `${prefix}Copied & saved with ${imageCount} images!`
-      : `${prefix}Copied & saved!`;
+      ? `${prefix}Copied & saved to Downloads with ${imageCount} images!`
+      : `${prefix}Copied & saved to Downloads!`;
   } else if (copied) {
     return `${prefix}Copied to clipboard!`;
   } else {
     return imageCount > 0
-      ? `${prefix}Saved with ${imageCount} images!`
-      : `${prefix}Saved to Downloads/EzyCopy!`;
+      ? `${prefix}Saved to Downloads with ${imageCount} images!`
+      : `${prefix}Saved to Downloads!`;
   }
 }
 
@@ -112,12 +112,18 @@ async function downloadMarkdownFile(content, filename) {
     const successMsg = buildSuccessMessage(copiedToClipboard, savedToFile, imageCount, extraction.isSelection);
     showFeedback(successMsg, "#4caf50");
 
+    // Show success badge on extension icon
+    chrome.runtime.sendMessage({ action: 'showBadge', type: 'success' });
+
   } catch (error) {
     if (error.name === "AbortError") {
       return; // User cancelled
     }
     console.error("EzyCopy error:", error);
     showFeedback("Error: " + error.message, "#f44336");
+
+    // Show error badge on extension icon
+    chrome.runtime.sendMessage({ action: 'showBadge', type: 'error' });
   }
 })();
 
@@ -192,11 +198,11 @@ function showFeedback(message, bgColor) {
 
   document.body.appendChild(feedback);
 
-  // Auto-dismiss after 3 seconds (unless it's a progress message)
+  // Auto-dismiss after 5 seconds (unless it's a progress message)
   if (!isProgress) {
     setTimeout(() => {
       feedback.style.animation = 'ezycopySlideOut 0.3s ease forwards';
       setTimeout(() => feedback.remove(), 300);
-    }, 3000);
+    }, 5000);
   }
 }
