@@ -17,25 +17,38 @@ HOW TO TEST EZYCOPY:
    - https://dev.to (any article)
    - Any news article or blog post
 
-2. Click the EzyCopy extension icon in the toolbar
+2. There are TWO ways to use the extension:
 
-3. You will see TWO confirmation indicators:
-   - A green toast notification in the top-right corner saying "Copied & saved to Downloads!"
+   METHOD A - Popup Button:
+   - Click the EzyCopy extension icon in the toolbar
+   - A popup opens with settings toggles:
+     • "Copy to clipboard" - copies markdown to clipboard
+     • "Download .md" - saves file to Downloads/EzyCopy/
+     • "Include images" - preserves image references
+   - Click the "EzyCopy" button to extract the page content
+
+   METHOD B - Right-Click Menu:
+   - Right-click anywhere on the page
+   - Click "EzyCopy" in the context menu
+   - Content is instantly extracted using your saved settings
+
+3. After extraction, you will see TWO confirmation indicators:
+   - A green toast notification in the top-right corner (e.g., "Copied & saved to Downloads!")
    - A green checkmark (✓) badge on the extension icon
 
-4. The markdown file is saved to: Downloads/EzyCopy/[article-title]-[date].md
-
-5. Open the downloaded .md file to verify the content was extracted correctly
+4. Verify the output:
+   - If "Copy to clipboard" is enabled: paste into any text editor to see the markdown
+   - If "Download .md" is enabled: check Downloads/EzyCopy/[article-title]-[date].md
 
 IMPORTANT NOTES:
 - The extension ONLY works on regular web pages (http/https)
 - It does NOT work on: chrome:// pages, the new tab page, Chrome Web Store, or PDF files
-- The toast notification stays visible for 5 seconds
-- The extension badge shows a checkmark for 5 seconds after success
+- Toast notification and badge are visible for 5 seconds
+- Settings persist between uses (stored locally via chrome.storage.local)
 
 STORAGE PERMISSION:
-The "storage" permission is used to save user preferences (toggle settings in the popup).
-No personal data or browsing history is stored. Settings are stored locally in chrome.storage.local.
+The "storage" permission saves user preferences (the toggle settings in the popup).
+No personal data or browsing history is stored. All settings are local to the browser.
 ```
 
 ---
