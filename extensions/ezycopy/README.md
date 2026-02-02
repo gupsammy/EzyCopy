@@ -9,10 +9,10 @@
 </p>
 
 <p align="center">
+  <a href="https://chromewebstore.google.com/detail/ezycopy/eojoeelojbibilgaghngogekokppkfpb"><img src="https://img.shields.io/chrome-web-store/v/eojoeelojbibilgaghngogekokppkfpb?label=Chrome%20Web%20Store" alt="Chrome Web Store"></a>
   <a href="https://github.com/gupsammy/EzyCopy/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
   <img src="https://img.shields.io/badge/Manifest-V3-green.svg" alt="Manifest V3">
   <img src="https://img.shields.io/badge/Chrome-88%2B-yellow.svg" alt="Chrome 88+">
-  <a href="https://github.com/gupsammy/EzyCopy/issues"><img src="https://img.shields.io/github/issues/gupsammy/EzyCopy" alt="Issues"></a>
 </p>
 
 <p align="center">
@@ -33,11 +33,15 @@
 
 ## Installation
 
-### From Chrome Web Store
+### From Chrome Web Store (Recommended)
 
-Coming soon!
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/ezycopy/eojoeelojbibilgaghngogekokppkfpb">
+    <img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png" alt="Available in the Chrome Web Store" width="200">
+  </a>
+</p>
 
-### Manual Installation
+### Manual Installation (Development)
 
 1. Clone the repository:
    ```bash

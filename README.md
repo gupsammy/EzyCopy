@@ -1,11 +1,23 @@
-# EzyCopy
+<p align="center">
+  <img src="extensions/ezycopy/icons/icon128.png" alt="EzyCopy" width="100" height="100">
+</p>
 
-[![Go Version](https://img.shields.io/github/go-mod/go-version/gupsammy/EzyCopy)](https://go.dev/)
-[![Release](https://img.shields.io/github/v/release/gupsammy/EzyCopy)](https://github.com/gupsammy/EzyCopy/releases/latest)
-[![License](https://img.shields.io/github/license/gupsammy/EzyCopy)](LICENSE)
-[![Go Report Card](https://goreportcard.com/badge/github.com/gupsammy/EzyCopy)](https://goreportcard.com/report/github.com/gupsammy/EzyCopy)
+<h1 align="center">EzyCopy</h1>
 
-Extract web content as clean markdown. Available as a CLI tool and Chrome extension.
+<p align="center">
+  <strong>Extract web content as clean markdown</strong><br>
+  Available as a CLI tool and Chrome extension
+</p>
+
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/ezycopy/eojoeelojbibilgaghngogekokppkfpb"><img src="https://img.shields.io/chrome-web-store/v/eojoeelojbibilgaghngogekokppkfpb?label=Chrome%20Web%20Store" alt="Chrome Web Store"></a>
+  <a href="https://github.com/gupsammy/EzyCopy/releases/latest"><img src="https://img.shields.io/github/v/release/gupsammy/EzyCopy" alt="Release"></a>
+  <a href="https://go.dev/"><img src="https://img.shields.io/github/go-mod/go-version/gupsammy/EzyCopy" alt="Go Version"></a>
+  <a href="https://goreportcard.com/report/github.com/gupsammy/EzyCopy"><img src="https://goreportcard.com/badge/github.com/gupsammy/EzyCopy" alt="Go Report Card"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/gupsammy/EzyCopy" alt="License"></a>
+</p>
+
+---
 
 ## Features
 
@@ -97,9 +109,29 @@ On first `--browser` run, it will use your installed Chrome. If Chrome isn't ava
 - macOS, Linux, or Windows
 - Google Chrome (only needed for `--browser` mode)
 
+---
+
 ## Chrome Extension
 
-The Chrome extension provides the same extraction capabilities directly in your browser. See [extensions/ezycopy/](extensions/ezycopy/) for installation instructions.
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/ezycopy/eojoeelojbibilgaghngogekokppkfpb">
+    <img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png" alt="Available in the Chrome Web Store" width="200">
+  </a>
+</p>
+
+Extract and save any webpage as clean, formatted Markdown — directly from your browser.
+
+**Features:**
+- One-click extraction from toolbar or right-click menu
+- Removes ads, navigation, and clutter automatically
+- Full GitHub Flavored Markdown support (tables, code blocks, images)
+- Privacy focused — all processing happens locally
+
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/ezycopy/eojoeelojbibilgaghngogekokppkfpb"><strong>Install from Chrome Web Store →</strong></a>
+</p>
+
+See [extensions/ezycopy/](extensions/ezycopy/) for manual installation and development instructions.
 
 ## Repository Structure
 
