@@ -37,7 +37,7 @@
 
 <p align="center">
   <a href="https://chromewebstore.google.com/detail/ezycopy/eojoeelojbibilgaghngogekokppkfpb">
-    <img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png" alt="Available in the Chrome Web Store" width="200">
+    <img src="https://img.shields.io/chrome-web-store/v/eojoeelojbibilgaghngogekokppkfpb?style=for-the-badge&logo=googlechrome&logoColor=white&label=Chrome%20Web%20Store&color=4285F4" alt="Available in the Chrome Web Store">
   </a>
 </p>
 
