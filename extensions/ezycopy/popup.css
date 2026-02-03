@@ -28,46 +28,61 @@ body {
   flex-direction: column;
 }
 
-/* Main Action */
+/* Main Action - now at bottom */
 .main {
-  padding: 20px 16px 16px;
+  padding: 16px;
   background: var(--surface);
+  border-top: 1px solid var(--border);
 }
 
-/* Hero Button */
+/* Hero Button - 3D style */
 .btn-hero {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 16px 24px;
-  background: var(--primary);
+  padding: 14px 24px;
+  background: linear-gradient(180deg, #14B8A6 0%, #0D9488 100%);
   color: white;
   border: none;
-  border-radius: 10px;
-  font-size: 18px;
+  border-radius: 12px;
+  font-size: 17px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
+  transition: all 0.15s ease;
+  box-shadow:
+    0 4px 0 #0a7568,
+    0 6px 12px rgba(13, 148, 136, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  top: 0;
 }
 
 .btn-hero:hover {
-  background: var(--primary-hover);
-  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.4);
+  background: linear-gradient(180deg, #2DD4BF 0%, #14B8A6 100%);
+  box-shadow:
+    0 4px 0 #0a7568,
+    0 8px 16px rgba(13, 148, 136, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .btn-hero:active {
-  transform: scale(0.98);
-  box-shadow: 0 1px 4px rgba(13, 148, 136, 0.3);
+  top: 3px;
+  box-shadow:
+    0 1px 0 #0a7568,
+    0 2px 4px rgba(13, 148, 136, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .btn-hero:disabled {
-  background: var(--toggle-off);
+  background: linear-gradient(180deg, #BDBDBD 0%, #9E9E9E 100%);
+  box-shadow:
+    0 4px 0 #757575,
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+  top: 0;
 }
 
 .hero-logo {
@@ -83,6 +98,11 @@ body {
   padding: 16px;
   background: var(--background);
   border-top: 1px solid var(--border);
+}
+
+.settings-first {
+  border-top: none;
+  padding-top: 16px;
 }
 
 .setting-row {
@@ -112,6 +132,13 @@ body {
 .setting-description {
   font-size: 11px;
   color: var(--text-secondary);
+}
+
+/* Child setting (indented under parent) */
+.setting-row.setting-child {
+  margin-left: 16px;
+  padding-left: 12px;
+  border-left: 2px solid var(--border);
 }
 
 /* Conditional setting row (can be hidden) */
@@ -188,4 +215,16 @@ body {
   font-weight: 600;
   color: #ffa726;
   letter-spacing: 0.5px;
+}
+
+/* Error Message */
+.error-message {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+  font-size: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  text-align: center;
 }

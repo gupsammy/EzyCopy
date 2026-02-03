@@ -7,7 +7,7 @@
   const DEFAULT_SETTINGS = {
     copyToClipboard: true,
     downloadMarkdown: true,
-    includeImages: true,
+    includeImages: false,
     experimental: {
       selectiveCopy: false,
       downloadImagesLocally: false,

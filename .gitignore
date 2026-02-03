@@ -52,3 +52,6 @@ debug
 # Extension artifacts
 extensions/**/*.zip
 extensions/**/assets/
+
+# Video project
+videos/

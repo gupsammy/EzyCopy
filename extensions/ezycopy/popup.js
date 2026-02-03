@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // Update download images toggle visibility
   // Only visible when BOTH download markdown AND include images are enabled
+  // (downloading images locally only makes sense when saving markdown to disk)
   function updateDownloadImagesVisibility(downloadMarkdown, includeImages) {
     if (downloadMarkdown && includeImages) {
       downloadImagesRow.classList.remove("hidden");
@@ -89,12 +90,42 @@ document.addEventListener("DOMContentLoaded", async function () {
     await saveSettings(currentSettings);
   });
 
+  // Show error message in popup
+  function showError(message) {
+    // Remove any existing error
+    const existingError = document.querySelector('.error-message');
+    if (existingError) existingError.remove();
+
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = message;
+
+    // Insert before the button
+    ezycopyBtn.parentNode.insertBefore(errorDiv, ezycopyBtn);
+  }
+
   // Handle EzyCopy button click - inject content script and close popup
   ezycopyBtn.addEventListener("click", async () => {
     try {
       ezycopyBtn.disabled = true;
 
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+      // Check for restricted URLs where scripts can't be injected
+      const restrictedPatterns = [
+        /^chrome:\/\//,
+        /^chrome-extension:\/\//,
+        /^edge:\/\//,
+        /^about:/,
+        /^https:\/\/chrome\.google\.com\/webstore/,
+        /^https:\/\/chromewebstore\.google\.com/,
+      ];
+
+      if (!tab.url || restrictedPatterns.some(pattern => pattern.test(tab.url))) {
+        showError("Cannot run on this page");
+        ezycopyBtn.disabled = false;
+        return;
+      }
 
       // Inject libs + content-script (same as context menu)
       await chrome.scripting.executeScript({
@@ -109,7 +140,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     } catch (error) {
       console.error("EzyCopy error:", error);
-      // Re-enable button on error so user can retry
+
+      // Show user-friendly error with refresh prompt
+      showError("Please refresh this page and try again");
       ezycopyBtn.disabled = false;
     }
   });

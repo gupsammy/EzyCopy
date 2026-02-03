@@ -6,16 +6,8 @@
   </head>
   <body>
     <div class="popup-container">
-      <!-- Hero Button -->
-      <main class="main">
-        <button id="ezycopyBtn" class="btn-hero">
-          <img class="hero-logo" src="icons/icon48.png" width="24" height="24" alt="">
-          <span class="hero-text">EzyCopy</span>
-        </button>
-      </main>
-
       <!-- Settings -->
-      <section class="settings">
+      <section class="settings settings-first">
         <!-- Toggle 1: Copy to clipboard -->
         <div class="setting-row">
           <div class="setting-info">
@@ -39,18 +31,6 @@
             <span class="toggle-slider"></span>
           </label>
         </div>
-
-        <!-- Toggle 3: Include Images -->
-        <div class="setting-row">
-          <div class="setting-info">
-            <label for="includeImages" class="setting-label">Include images</label>
-            <span class="setting-description">Keep image links in output</span>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="includeImages">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
       </section>
 
       <!-- Experimental Features -->
@@ -71,8 +51,20 @@
           </label>
         </div>
 
-        <!-- Toggle: Download Images Locally -->
-        <div class="setting-row" id="downloadImagesRow">
+        <!-- Toggle: Include Images (parent toggle) -->
+        <div class="setting-row">
+          <div class="setting-info">
+            <label for="includeImages" class="setting-label">Include images</label>
+            <span class="setting-description">Keep image links in output</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="includeImages">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Toggle: Download Images Locally (child of Include Images) -->
+        <div class="setting-row setting-child" id="downloadImagesRow">
           <div class="setting-info">
             <label for="downloadImagesLocally" class="setting-label">Download images locally</label>
             <span class="setting-description">Save images with markdown file</span>
@@ -83,6 +75,14 @@
           </label>
         </div>
       </section>
+
+      <!-- Hero Button at Bottom -->
+      <main class="main">
+        <button id="ezycopyBtn" class="btn-hero">
+          <img class="hero-logo" src="icons/icon48.png" width="24" height="24" alt="">
+          <span class="hero-text">EzyCopy</span>
+        </button>
+      </main>
     </div>
     <script src="settings.js"></script>
     <script src="file-helpers.js"></script>

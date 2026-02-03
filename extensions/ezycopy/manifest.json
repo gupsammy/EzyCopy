@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "EzyCopy - Save Any Webpage",
-  "version": "2.2",
+  "version": "2.3",
   "description": "Extract and save webpage content.",
   "permissions": ["activeTab", "scripting", "contextMenus", "storage", "downloads"],
   "action": {
