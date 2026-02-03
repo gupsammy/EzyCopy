@@ -133,6 +133,20 @@ Extract and save any webpage as clean, formatted Markdown — directly from your
 
 See [extensions/ezycopy/](extensions/ezycopy/) for manual installation and development instructions.
 
+---
+
+## Claude Code Skill
+
+Use EzyCopy directly from Claude Code with the `web-to-markdown` skill.
+
+**Install via claudest marketplace:**
+```
+/plugin marketplace add gupsammy/claudest
+/plugin install claude-utilities@claudest
+```
+
+Once installed, Claude will automatically use EzyCopy when you ask to extract web content, convert pages to markdown, or save articles.
+
 ## Repository Structure
 
 ```
