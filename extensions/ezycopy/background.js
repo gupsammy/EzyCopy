@@ -92,7 +92,7 @@ function downloadMarkdown(content, filename) {
   return new Promise((resolve) => {
     // Create a data URL for the content (service workers don't support URL.createObjectURL)
     const base64Content = btoa(unescape(encodeURIComponent(content)));
-    const url = `data:text/markdown;base64,${base64Content}`;
+    const url = `data:text/plain;base64,${base64Content}`;
 
     const savePath = `${EZYCOPY_FOLDER}/${filename}`;
 
