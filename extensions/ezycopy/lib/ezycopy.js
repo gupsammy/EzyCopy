@@ -55,6 +55,25 @@ function stripImages(markdown) {
 }
 
 /**
+ * Clean common markup artifacts from final markdown output.
+ * Targets patterns that are unambiguously broken (not natural language).
+ * @param {string} markdown - Markdown content to clean
+ * @returns {string} Cleaned markdown
+ */
+function cleanMarkdown(markdown) {
+  return markdown
+    // Remove orphaned link fragments: ](#) from stripped carousel/gallery links
+    .replace(/\]\(#\)/g, '')
+    // Remove orphaned gallery counters: lines starting with [digits (no closing bracket on same line)
+    .replace(/^\[\d+\s*$/gm, '')
+    // Collapse 3+ consecutive blank lines to 2
+    .replace(/\n{3,}/g, '\n\n')
+    // Remove orphaned horizontal rules (--- on its own line surrounded by blank lines)
+    .replace(/\n\n---\n\n/g, '\n\n')
+    .trim();
+}
+
+/**
  * Analyze images in an HTML string - returns both count and image data
  * Single-pass extraction to avoid redundant HTML parsing
  * @param {string} html - HTML content to parse
@@ -92,111 +111,70 @@ function analyzeImagesInHtml(html) {
 }
 
 /**
- * Calculate text overlap between Readability output and a container
- * Used to identify which CMS container matches the extracted article content
- * @param {string} readabilityText - Text content from Readability
- * @param {string} containerText - Text content from a CMS container
- * @returns {number} Overlap ratio between 0 and 1
+ * Interactive widget selectors to strip from cloned DOM.
+ * These match visible interactive UI that Readability doesn't handle:
+ * ARIA roles for widget patterns, video players, rating UIs, custom form elements, etc.
  */
-function calculateTextOverlap(readabilityText, containerText) {
-  if (!readabilityText || readabilityText.length === 0) return 0;
+const WIDGET_SELECTORS = [
+  // ARIA widget roles (interactive, not content)
+  '[role="toolbar"]',
+  '[role="tablist"]',
+  '[role="tab"]',
+  '[role="slider"]',
+  '[role="spinbutton"]',
+  '[role="switch"]',
+  '[role="tooltip"]',
+  '[role="listbox"]',
+  '[role="combobox"]',
+  '[role="search"]',
+  '[role="radiogroup"]',
+  '[role="progressbar"]',
 
-  // Normalize: lowercase, collapse whitespace
-  const normalize = (str) => str.toLowerCase().replace(/\s+/g, ' ').trim();
-  const normalizedReadability = normalize(readabilityText);
-  const normalizedContainer = normalize(containerText);
+  // Video player chrome
+  '[class*="jw-"]',
+  '[class*="vjs-"]',
+  '[class*="plyr"]',
 
-  // Check if one contains the other (handles Readability stripping or container having extra)
-  if (normalizedContainer.includes(normalizedReadability)) return 1.0;
-  if (normalizedReadability.includes(normalizedContainer)) {
-    return normalizedContainer.length / normalizedReadability.length;
-  }
+  // Rating widgets
+  '[class*="rating-star"]',
+  '[class*="star-rating"]',
 
-  // Word-based overlap for partial matches (filter words > 3 chars to avoid noise)
-  const words = normalizedReadability.split(' ').filter(w => w.length > 3);
-  if (words.length === 0) return 0;
-  const matchedWords = words.filter(w => normalizedContainer.includes(w));
-  return matchedWords.length / words.length;
-}
+  // Custom form/dropdown widgets
+  '[class*="custom-select"]',
+  '[class*="dropdown-menu"]',
+
+  // Recipe-specific interactive UI
+  '[class*="recipe-adjust"]',
+  '[class*="recipe-scale"]',
+  '[class*="serving-size"]',
+
+  // Action bars and social
+  '[class*="social-share"]',
+  '[class*="print-button"]',
+  '[class*="action-bar"]',
+
+  // Community/form widgets
+  '[class*="answer-form"]',
+  '[class*="review-form"]',
+  '[class*="comment-form"]',
+
+  // Interactive markers
+  '[contenteditable="true"]',
+  '[data-toggle]',
+  '[data-action]',
+];
+
+const WIDGET_SELECTOR_STRING = WIDGET_SELECTORS.join(', ');
 
 /**
- * Clean HTML by removing non-content elements (styles, scripts, promos)
- * @param {Element} container - The container element to clean
- * @returns {string} Cleaned innerHTML
+ * Check if an element likely contains real article content and should be preserved.
+ * Skips removal for elements with substantial text containing sentence punctuation.
+ * @param {Element} el - The element to check
+ * @returns {boolean} True if the element should be kept (likely content)
  */
-function cleanContainerHtml(container) {
-  // Clone to avoid modifying the actual DOM
-  const clone = container.cloneNode(true);
-
-  // Remove style and script tags
-  clone.querySelectorAll('style, script, noscript').forEach(el => el.remove());
-
-  // Remove common promo/ad patterns
-  const promoSelectors = [
-    '[class*="interlude"]',
-    '[class*="promo"]',
-    '[class*="advert"]',
-    '[class*="sidebar"]',
-    '[class*="related"]',
-    '[class*="newsletter"]',
-    '[class*="subscribe"]',
-    '[id*="promo"]',
-    '[id*="advert"]',
-  ];
-  promoSelectors.forEach(selector => {
-    clone.querySelectorAll(selector).forEach(el => el.remove());
-  });
-
-  return clone.innerHTML;
-}
-
-/**
- * Find the best content container for fallback extraction using hybrid approach
- * Uses text overlap with Readability output as primary signal, image count as tiebreaker
- * @param {string} readabilityText - Text content extracted by Readability (used as "fingerprint")
- * @returns {Element|null} The best matching container, or null if none found
- */
-function findBestContentContainer(readabilityText) {
-  // CMS-specific selectors only - avoid generic main/article which include sidebars
-  const selectors = [
-    '.rte',              // Shopify
-    '.entry-content',    // WordPress
-    '.post-content',     // WordPress alt
-    '.article-content',  // Common CMS
-    '.post-body',        // Blogger/Tumblr
-    '.story-body',       // News sites
-    '.article-body',     // News sites alt
-  ];
-
-  // Collect ALL matching containers across all selectors
-  const candidates = [];
-  selectors.forEach(selector => {
-    document.querySelectorAll(selector).forEach(el => {
-      if (el.querySelectorAll('img').length > 0) {
-        candidates.push({
-          element: el,
-          selector,
-          textOverlap: calculateTextOverlap(readabilityText, el.textContent),
-          imageCount: el.querySelectorAll('img').length
-        });
-      }
-    });
-  });
-
-  if (candidates.length === 0) return null;
-
-  // Filter to candidates with >50% text overlap
-  const goodMatches = candidates.filter(c => c.textOverlap > 0.5);
-
-  if (goodMatches.length === 0) {
-    // No good text match - fall back to container with most images
-    candidates.sort((a, b) => b.imageCount - a.imageCount);
-    return candidates[0].element;
-  }
-
-  // Among good text matches, pick the one with most images (tiebreaker)
-  goodMatches.sort((a, b) => b.imageCount - a.imageCount);
-  return goodMatches[0].element;
+function isLikelyContent(el) {
+  const text = el.textContent || '';
+  return text.length > 200 && /[.!?]/.test(text);
 }
 
 /**
@@ -247,7 +225,95 @@ function formatContent(extraction, target, settings) {
     content = stripImages(content);
   }
 
+  // Clean markup artifacts from final output
+  content = cleanMarkdown(content);
+
   return content;
+}
+
+/**
+ * Mark elements hidden via CSS on the live DOM before cloning.
+ * getComputedStyle() resolves stylesheet rules that cloneNode() loses.
+ * @param {Document} liveDoc - The live document (window.document)
+ * @returns {Element[]} Array of marked elements (for cleanup after cloning)
+ */
+function markHiddenElements(liveDoc) {
+  const marked = [];
+  const elements = liveDoc.body.getElementsByTagName('*');
+
+  for (let i = 0; i < elements.length; i++) {
+    const el = elements[i];
+
+    // Skip descendants of already-marked elements
+    if (el.closest('[data-ezycopy-hidden]')) continue;
+
+    // Skip elements that won't have meaningful computed styles
+    const tag = el.tagName.toLowerCase();
+    if (tag === 'script' || tag === 'style' || tag === 'link' || tag === 'meta') continue;
+
+    try {
+      const style = liveDoc.defaultView.getComputedStyle(el);
+      const isHidden =
+        style.display === 'none' ||
+        style.visibility === 'hidden' ||
+        style.opacity === '0' ||
+        (style.height === '0px' && style.overflow === 'hidden');
+
+      if (isHidden) {
+        el.setAttribute('data-ezycopy-hidden', '');
+        marked.push(el);
+      }
+    } catch (e) {
+      // getComputedStyle can fail on detached elements — skip safely
+    }
+  }
+
+  return marked;
+}
+
+/**
+ * Remove data-ezycopy-hidden markers from the live DOM after cloning.
+ * @param {Element[]} markedElements - Elements previously marked by markHiddenElements()
+ */
+function cleanupMarkers(markedElements) {
+  for (const el of markedElements) {
+    el.removeAttribute('data-ezycopy-hidden');
+  }
+}
+
+/**
+ * Pre-clean a cloned DOM before passing to Readability.
+ * Phase 1: Remove CSS-hidden elements (marked on live DOM).
+ * Phase 2: Remove interactive widget patterns by selector.
+ * @param {Document} clonedDoc - The cloned document to clean in-place
+ */
+function preCleanDom(clonedDoc) {
+  // Phase 1: Remove elements that were hidden via CSS on the live page
+  clonedDoc.querySelectorAll('[data-ezycopy-hidden]').forEach(el => el.remove());
+
+  // Phase 2: Remove interactive widget patterns
+  clonedDoc.querySelectorAll(WIDGET_SELECTOR_STRING).forEach(el => {
+    if (isLikelyContent(el)) return;
+    el.remove();
+  });
+
+  // Phase 3: Wrap standalone <img> in <figure> to protect from Readability's
+  // _cleanConditionally, which skips nodes inside <figure> ancestors.
+  clonedDoc.querySelectorAll('img').forEach(img => {
+    // Already protected by a <figure> ancestor
+    if (img.closest('figure')) return;
+
+    // Skip tracking pixels and icons (tiny or data-URI)
+    const w = parseInt(img.getAttribute('width'), 10);
+    const h = parseInt(img.getAttribute('height'), 10);
+    if ((w > 0 && w <= 1) || (h > 0 && h <= 1)) return;
+    const src = img.getAttribute('src') || '';
+    if (src.startsWith('data:')) return;
+
+    const figure = clonedDoc.createElement('figure');
+    img.parentNode.insertBefore(figure, img);
+    figure.appendChild(img);
+  });
 }
 
 /**
@@ -279,7 +345,15 @@ function extractContent(options = {}) {
   }
 
   // No selection - extract full page with Readability
-  const docClone = document.cloneNode(true);
+  // Pre-clean: mark CSS-hidden elements on live DOM, clone, clean markers, strip widgets
+  const hiddenMarkers = markHiddenElements(document);
+  let docClone;
+  try {
+    docClone = document.cloneNode(true);
+  } finally {
+    cleanupMarkers(hiddenMarkers);
+  }
+  preCleanDom(docClone);
   const reader = new Readability(docClone);
   const article = reader.parse();
 
@@ -311,47 +385,44 @@ function extractContent(options = {}) {
     };
   }
 
-  // Find best container using text matching + image count (hybrid approach)
-  const readabilityText = article.textContent || '';
-  const container = findBestContentContainer(readabilityText);
-
-  // If no CMS container found, use Readability output
-  if (!container) {
-    const { images } = analyzeImagesInHtml(article.content);
-    return {
-      title: article.title,
-      body: turndown.turndown(article.content),
-      sourceUrl: location.href,
-      byline: article.byline,
-      isSelection: false,
-      html: article.content,
-      images
-    };
-  }
-
-  // Check image loss in selected container
-  const containerImageCount = container.querySelectorAll('img').length;
+  // Check if Readability lost >50% of page images
+  const pageImageCount = document.querySelectorAll('img').length;
   const readabilityAnalysis = analyzeImagesInHtml(article.content);
-  const imageLossRatio = containerImageCount > 0
-    ? (containerImageCount - readabilityAnalysis.count) / containerImageCount
+  const imageLossRatio = pageImageCount > 0
+    ? (pageImageCount - readabilityAnalysis.count) / pageImageCount
     : 0;
 
-  // If >50% images lost, use cleaned container to preserve images
+  // If significant image loss, re-run Readability without FLAG_CLEAN_CONDITIONALLY.
+  // This preserves image-heavy containers while keeping other cleanup (unlikelys, class-weights).
   if (imageLossRatio > 0.5) {
-    const cleanedHtml = cleanContainerHtml(container);
-    const { images } = analyzeImagesInHtml(cleanedHtml);
-    return {
-      title: article.title,
-      body: turndown.turndown(cleanedHtml),
-      sourceUrl: location.href,
-      byline: article.byline,
-      isSelection: false,
-      html: cleanedHtml,
-      images
-    };
+    const retryMarkers = markHiddenElements(document);
+    let retryClone;
+    try {
+      retryClone = document.cloneNode(true);
+    } finally {
+      cleanupMarkers(retryMarkers);
+    }
+    preCleanDom(retryClone);
+    const retryReader = new Readability(retryClone);
+    // FLAG_STRIP_UNLIKELYS (0x1) | FLAG_WEIGHT_CLASSES (0x2), omitting FLAG_CLEAN_CONDITIONALLY (0x4)
+    retryReader._flags = 0x1 | 0x2;
+    const retryArticle = retryReader.parse();
+
+    if (retryArticle) {
+      const { images } = analyzeImagesInHtml(retryArticle.content);
+      return {
+        title: retryArticle.title,
+        body: turndown.turndown(retryArticle.content),
+        sourceUrl: location.href,
+        byline: retryArticle.byline,
+        isSelection: false,
+        html: retryArticle.content,
+        images
+      };
+    }
   }
 
-  // Default: use Readability output (reuse already-analyzed images)
+  // Default: use first Readability pass output
   return {
     title: article.title,
     body: turndown.turndown(article.content),
