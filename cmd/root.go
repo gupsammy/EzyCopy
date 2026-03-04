@@ -127,7 +127,17 @@ func runRoot(cmd *cobra.Command, args []string) error {
 		if !quiet {
 			fmt.Fprintln(os.Stderr, "Fetching page (browser)...")
 		}
-		pageResult, err = extractor.FetchPage(inputURL, timeout)
+		if browserWS != "" {
+			// Use BrowserPool to connect to existing Chrome via DevTools WebSocket
+			pool, poolErr := extractor.NewBrowserPool(browserWS)
+			if poolErr != nil {
+				return fmt.Errorf("failed to connect to browser: %w", poolErr)
+			}
+			defer pool.Close()
+			pageResult, err = pool.FetchPage(cmd.Context(), inputURL, timeout)
+		} else {
+			pageResult, err = extractor.FetchPage(inputURL, timeout)
+		}
 	} else {
 		if !quiet {
 			fmt.Fprintln(os.Stderr, "Fetching page...")

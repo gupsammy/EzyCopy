@@ -77,6 +77,11 @@ func runBatch(cmd *cobra.Command, args []string) error {
 		return &UsageError{Msg: fmt.Sprintf("invalid --max-body-size: %v", err)}
 	}
 
+	// Validate retries
+	if retries < 0 {
+		return &UsageError{Msg: "--retries must be non-negative"}
+	}
+
 	// Setup concurrency primitives
 	limiter := batch.NewDomainLimiter(rateLimit)
 	retryCfg := &batch.RetryConfig{
@@ -131,6 +136,11 @@ func runBatch(cmd *cobra.Command, args []string) error {
 	for i, u := range urls {
 		seq := i
 		rawURL := u
+
+		// With --fail-fast, stop scheduling new jobs once context is cancelled
+		if failFast && gctx.Err() != nil {
+			break
+		}
 
 		g.Go(func() error {
 			result := fetchAndExtract(gctx, seq, rawURL, limiter, retryCfg, pool, bodyLimit)
