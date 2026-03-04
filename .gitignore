@@ -49,9 +49,15 @@ debug
 .env
 .env.local
 
+# Junk / temp files
+junk/
+
 # Extension artifacts
 extensions/**/*.zip
 extensions/**/assets/
 
 # Video project
 videos/
+
+# Agent counselors output
+agents/
