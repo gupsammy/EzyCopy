@@ -13,8 +13,9 @@ import (
 
 // PageResult contains the fetched page data
 type PageResult struct {
-	HTML string
-	URL  string // Final URL after redirects
+	HTML        string
+	URL         string // Final URL after redirects
+	ContentType string // HTTP Content-Type header
 }
 
 // getDefaultChromeProfile returns the path to Chrome's default user data directory

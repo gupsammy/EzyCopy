@@ -50,8 +50,12 @@ debug
 .env.local
 
 # Extension artifacts
+*.zip
 extensions/**/*.zip
 extensions/**/assets/
 
 # Video project
 videos/
+
+# Agent counselors output
+agents/
