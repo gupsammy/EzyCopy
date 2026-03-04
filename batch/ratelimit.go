@@ -55,7 +55,7 @@ func (d *DomainLimiter) Wait(ctx context.Context, rawURL string) error {
 
 func extractDomain(rawURL string) string {
 	u, err := url.Parse(rawURL)
-	if err != nil {
+	if err != nil || u.Hostname() == "" {
 		return rawURL
 	}
 	return u.Hostname()

@@ -122,6 +122,10 @@ func runBatch(cmd *cobra.Command, args []string) error {
 			enc.Encode(r)
 			if r.Status == "ok" {
 				okCount++
+				// Write file in serialized writer goroutine to avoid TOCTOU race
+				if outputFlag != "" && r.Title != nil {
+					writeResultToFile(r)
+				}
 			} else {
 				errCount++
 				errCodes = append(errCodes, r.Error)
@@ -145,11 +149,6 @@ func runBatch(cmd *cobra.Command, args []string) error {
 		g.Go(func() error {
 			result := fetchAndExtract(gctx, seq, rawURL, limiter, retryCfg, pool, bodyLimit)
 			results <- result
-
-			// Write to file if output dir is set and extraction succeeded
-			if outputFlag != "" && result.Status == "ok" && result.Title != nil {
-				writeResultToFile(result)
-			}
 
 			if !quiet {
 				status := "ok"

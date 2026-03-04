@@ -59,3 +59,6 @@ videos/
 
 # Agent counselors output
 agents/
+
+# Junk / temp files
+junk/

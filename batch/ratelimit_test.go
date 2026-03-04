@@ -99,7 +99,8 @@ func TestExtractDomain(t *testing.T) {
 	}{
 		{"https://example.com/path", "example.com"},
 		{"http://sub.example.com:8080/page", "sub.example.com"},
-		{"not-a-url", ""},
+		{"not-a-url", "not-a-url"},
+		{"example.com/page", "example.com/page"},
 	}
 	for _, tt := range tests {
 		got := extractDomain(tt.url)
