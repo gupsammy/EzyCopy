@@ -278,6 +278,8 @@ func isRetryable(err error) bool {
 		if strings.HasPrefix(ee.Code, "http_5") {
 			return true
 		}
+		// Don't retry other known HTTP errors (4xx, etc.)
+		return false
 	}
 	// Retry generic fetch errors (timeouts, connection resets)
 	return true
