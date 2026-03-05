@@ -53,6 +53,7 @@ debug
 junk/
 
 # Extension artifacts
+*.zip
 extensions/**/*.zip
 extensions/**/assets/
 
