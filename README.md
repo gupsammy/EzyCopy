@@ -35,6 +35,8 @@
 curl -sSL https://raw.githubusercontent.com/gupsammy/EzyCopy/main/install.sh | sh
 ```
 
+Requires `sudo`.
+
 ### Download Binary
 
 Download the latest release for your platform:
